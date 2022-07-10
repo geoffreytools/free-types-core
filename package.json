@@ -1,0 +1,30 @@
+{
+    "name": "free-types-core",
+    "version": "0.0.1",
+    "description": "A type-level library enabling the creation and the manipulation of type constructors which are detached from their type parameters.",
+    "keywords:": [
+        "higher kinded type",
+        "type constructor",
+        "typescript"
+    ],
+    "exports": {
+        ".": {
+            "import": "./index.ts"
+        }
+    },
+    "types": "./index.ts",
+    "author": "Geoffrey Gourdet",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/geoffreytools/free-types-core"
+    },
+    "license": "ICS",
+    "devDependencies": {
+        "typescript": "^4.7.2"
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch",
+        "trace": "tsc --generateTrace traceDir"
+    }
+}
