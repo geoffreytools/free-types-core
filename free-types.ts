@@ -1,5 +1,4 @@
 import { Type } from './Type'
-import { Checked, A, B, At } from './helpers'
 import { ToTuple } from './utils'
 
 export {
@@ -21,17 +20,17 @@ export {
 }
 
 interface $Id extends Type<1> {
-    type: A<this>
+    type: this[0]
 }
 
 type Key = string | number | symbol;
 
 interface $Record extends Type<[Key, unknown]> {
-    type: Record<A<this>, B<this>>
+    type: Record<this[0] & Key, this[1]>
 }
 
 interface $Array extends Type<1> {
-    type: Array<A<this>>
+    type: Array<this[0]>
 }
 
 interface $Tuple extends Type {
@@ -43,41 +42,41 @@ interface $ReadonlyTuple extends Type {
 }
 
 interface $ReadonlyArray extends Type<1> {
-    type: ReadonlyArray<A<this>>
+    type: ReadonlyArray<this[0]>
 }
 
 interface $Set extends Type<1> {
-    type: Set<A<this>>
+    type: Set<this[0]>
 }
 
 interface $ReadonlySet extends Type<1> {
-    type: ReadonlySet<A<this>>
+    type: ReadonlySet<this[0]>
 }
 
 interface $WeakSet extends Type<[object]> {
-    type: WeakSet<Checked<A, this>>
+    type: WeakSet<this[0] extends object ? this[0] : object>
 }
 
 interface $Map extends Type<2> {
-    type: Map<A<this>, B<this>>
+    type: Map<this[0], this[1]>
 }
 
 interface $ReadonlyMap extends Type<2> {
-    type: ReadonlyMap<A<this>, B<this>>
+    type: ReadonlyMap<this[0], this[1]>
 }
 
 interface $WeakMap extends Type<[object, unknown]> {
-    type: WeakMap<Checked<A, this>, B<this>>
+    type: WeakMap<this[0] extends object ? this[0] : object, this[1]>
 }
 
 interface $Function extends Type<[any[], unknown]> {
-    type: (...args: Checked<A, this>) => B<this>
+    type: (...args: this[0] extends any[] ? this[0] : any[]) => this[1]
 }
 
 interface $UnaryFunction extends Type<2> {
-    type: (a: At<A, this, any>) => B<this>
+    type: (a: unknown extends this[0] ? any : this[0]) => this[1]
 }
 
 interface $Promise extends Type<1> {
-    type: Promise<A<this>>
+    type: Promise<this[0]>
 }

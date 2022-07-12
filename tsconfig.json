@@ -11,9 +11,6 @@
         "strict": true
     },
     "include": [
-        "./**/*.ts"
-    ],
-    "exclude": [
-        "node_modules"
+        "./index.ts"
     ]
 }

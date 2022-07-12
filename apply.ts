@@ -1,6 +1,5 @@
 import { Type } from './Type';
 import { ArrayKeys, Slice } from './utils';
-import { A, Checked } from './helpers';
 
 export { apply, $apply, Generic }
 
@@ -9,7 +8,7 @@ type apply<$T extends Type, Args extends $T['constraints'] = []> =
     applyUnsafe<$T, Args>;
 
 interface $apply<Args extends unknown[] = []> extends Type<[Type]> {
-    type: apply<Checked<A, this>, Args>
+    type: apply<this[0] extends Type ? this[0] : Type, Args>
 }
 
 /** Apply a free type `$T` with its type constraints. */

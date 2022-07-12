@@ -1,4 +1,4 @@
-import { Next, IsUnknown, Fork, Prev } from './utils'
+import { Next, IsUnknown, Prev } from './utils'
 
 export { At, Checked, Lossy, A, B, C, D, E }
 
@@ -7,7 +7,7 @@ type Type<N extends number> = {
     constraints: { [K in Prev<N>]: unknown; }
     arguments: unknown[]
 }
-    
+
 type Default = {
     constraints: [0,1,2,3,4]
     arguments: unknown[]
@@ -16,25 +16,32 @@ type Default = {
 /** safely index `this`
 */
 type At<
-    N extends number & keyof This['constraints'],
+    N extends number,
     This extends Type<Next<N>>,
     Fallback = unknown
-> = Fork<IsUnknown<This['arguments'][N]>, Fallback, This['arguments'][N]>
+> = IsUnknown<This['arguments'][N]> extends true ? Fallback
+    : This['arguments'][N]
 
 /** safely index `this` and defuse the corresponding type constraint with an inline conditional
  */
 type Checked<
-    N extends number & keyof This['constraints'],
+    N extends number,
     This extends Type<Next<N>>,
-    Fallback = This['constraints'][N]
-> = This['arguments'][N] extends This['constraints'][N] ? This['arguments'][N] : Fallback;
+    Fallback = N extends keyof This['constraints'] ? This['constraints'][N] : never
+> = N extends keyof This['constraints']
+        ? This['arguments'][N] extends This['constraints'][N]
+        ? This['arguments'][N]
+        : Fallback
+    : never;
 
 /** safely index `this` and intersect the corresponding type constraint
  */
 type Lossy<
-    N extends number & keyof This['constraints'],
+    N extends number,
     This extends Type<Next<N>>
-> = This['arguments'][N] & This['constraints'][N];
+> =  N extends keyof This['constraints']
+    ? This['arguments'][N] & This['constraints'][N]
+    : never;
 
 /** safely index `this` and intersect the corresponding type constraint
  * equals `0` When no argument is supplied

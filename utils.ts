@@ -1,22 +1,12 @@
-export { Natural, IsNatural, Prev, Next, Add, Subtract }
+export { Natural, Prev, Next, Subtract }
 
 export { ArrayKeys, Head, Tail, Init, Last, Slice, ToTuple, Tuple }
 
-export { Compute }
-
-export { Eq, IsKnown, Fork, IsUnknown, IsAny, Not, Or, Extends, And, Assert, IsUnion, LastUnionMember, Union2Tuple }
+export { Extends, Eq, IsUnknown, IsAny }
 
 // Numbers
 
-type Natural = [...NaturalSequence<64>, 64];
-
-type IsNatural<T> = T extends _IsNatural ? true : false;
-type _IsNatural = Natural[number];
-
-type NaturalSequence<Limit extends number, R extends number[] = []> =
-    number extends Limit ? number[]
-    : R['length'] extends Limit ? R
-    : NaturalSequence<Limit, [...R, R['length']]>;
+type Natural = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64];
 
 type Prev<I extends number> =
     number extends I ? number
@@ -29,14 +19,6 @@ type Next<I extends number> =
     : number & _Next[I];
 
 type _Next = Tail<Natural>
-
-type Add<A extends number, B extends number> =
-    number extends A ? number : number extends B ? number
-    : _Add<A, B>
-
-type _Add<A extends number, B extends number, _A = Next<A>, _B = Prev<B>> =
-    B extends 0 ? A : [_A] extends [never] ? never : [_B] extends never ? never
-    : _Add<_A & number, _B & number> 
 
 type Subtract<A extends number, B extends number> =
     number extends A ? number : number extends B ? number
@@ -65,13 +47,13 @@ type Slice<
     From extends number,
     To extends number = T['length'],
     I extends number = From,
-    R extends unknown[]=[],
+    R extends unknown[] = [],
 > =
     I extends To ? R
     : Slice<T, From, To, Next<I>, [...R, T[I]]>;
 
 type ToTuple<
-    T extends unknown[],
+    T extends readonly unknown[],
     I extends number = 0,
     R extends unknown[] = []
 > = any[] extends T ? T[0][]
@@ -83,38 +65,14 @@ type Tuple <L extends number, T = unknown, R extends unknown[] = []> =
     : L extends R['length'] ? R
     : Tuple<L, T, [T, ...R]>;
 
-// display
-
-type Compute<T> = { [K in keyof T]: T[K] } & unknown
-
 // Logic
 
-type Assert<T, U> = T extends U ? T : never;
+type IsUnknown<T> = unknown extends T ? IsAny<T> extends false ? true : false : false;
 
-type IsKnown<T> = Not<IsUnknown<T>>;
-type IsUnknown<T> = And<Extends<unknown, T>, Not<IsAny<T>>>;
 type IsAny<T> = Extends<T | anything, T & anything>
 
 type Extends<A, B> = [A] extends [B] ? true : false;
-type Eq<A, B> = And<Extends<A, B>, Extends<B, A>>;
-type Fork<P, T, F> = P extends false ? F : T;
-type And<A, B> = Fork<A, Fork<B, B, false>, false>;
-type Or<A, B> = Fork<A, A, Fork<B, B, false>>;
-type Not<T> = [T] extends [false] ? true : false
+type Eq<A, B> = [A] extends [B] ? [B] extends [A] ? true : false : false;
 
 declare const thing: unique symbol;
 type anything = typeof thing;
-
-type Union2Intersection<U> =
-    (U extends any ? (k: U) => void : never) extends
-        ((k: infer I) => void) ? I : never
-
-type LastUnionMember<T> =
-    Union2Intersection<T extends any ? () => T : never> extends
-        () => (infer R) ? R : never
-    
-type Union2Tuple<U, Last = LastUnionMember<U>> =
-    [U] extends [never] ? []
-    : [...Union2Tuple<Exclude<U, Last>>, Last];
-
-type IsUnion<T> = [T] extends [LastUnionMember<T>] ? false : true
