@@ -1,12 +1,12 @@
 export { Natural, Prev, Next, Subtract }
 
-export { ArrayKeys, Head, Tail, Init, Last, Slice, ToTuple, Tuple }
+export { ArrayKeys, Slice, ToTuple, Tuple }
 
 export { Extends, Eq, IsUnknown, IsAny }
 
 // Numbers
 
-type Natural = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64];
+type Natural = [0, ..._Next];
 
 type Prev<I extends number> =
     number extends I ? number
@@ -18,7 +18,7 @@ type Next<I extends number> =
     number extends I ? number
     : number & _Next[I];
 
-type _Next = Tail<Natural>
+type _Next = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64]
 
 type Subtract<A extends number, B extends number> =
     number extends A ? number : number extends B ? number
@@ -31,16 +31,6 @@ type _Subtract<A extends number, B extends number, _A = Prev<A>, _B = Prev<B>> =
 // Tuples
 
 type ArrayKeys = Exclude<keyof [], never>;
-
-type Head<T extends [unknown, ...unknown[]]> = T[0];
-
-type Tail<T extends [unknown, ...unknown[]]> =
-    T extends [unknown, ...infer R] ? R : never;
-
-type Last<T extends unknown[]> = T[Prev<T['length']>]
-
-type Init<T extends [unknown, ...unknown[]]> =
-    T extends [...infer R, unknown] ? R : never;
 
 type Slice<
     T extends unknown[],
