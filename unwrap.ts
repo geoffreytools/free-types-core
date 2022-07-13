@@ -14,8 +14,7 @@ export { unwrap, Unwrapped, Search }
 /** Decompose a type into its constituents */
 
 type unwrap<T, From extends Search = TypesMap> =
-    unknown extends T ? never
-    : T extends readonly unknown[] ? unwrapLists<T>
+    T extends readonly unknown[] ? unwrapLists<T>
     : _unwrap<T, From extends Type ? [From] : From>
 
 type unwrapLists<T> =
@@ -23,11 +22,9 @@ type unwrapLists<T> =
         ? T extends [unknown, ...unknown[]]
             ? Unwrapped<'Tuple', Tuple, T>
             : Unwrapped<'Array', Array, [T[0]]>
-    : T extends readonly unknown[]
-        ? T extends readonly [unknown, ...unknown[]]
-            ? Unwrapped<'ReadonlyTuple', ReadonlyTuple, Mutable<T>>
-            : Unwrapped<'ReadonlyArray', ReadonlyArray, [T[0]]>
-    : never
+    : T extends readonly [unknown, ...unknown[]]
+    ? Unwrapped<'ReadonlyTuple', ReadonlyTuple, Mutable<T>>
+    : Unwrapped<'ReadonlyArray', ReadonlyArray, [(T & unknown[])[0]]>
 
 type Mutable<T> = {
     -readonly[K in keyof T]: K extends ArrayKeys ? T[K] : T[K]
