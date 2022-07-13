@@ -1,4 +1,4 @@
-import { ArrayKeys, Eq, ToTuple } from './utils'
+import { ArrayKeys, Eq } from './utils'
 import { Type } from './Type';
 import { inferArgs} from './inferArgs';
 import { Generic, apply } from './apply';
@@ -20,14 +20,18 @@ type unwrap<T, From extends Search = TypesMap> =
 
 type unwrapLists<T> =
     T extends unknown[]
-        ? number extends T['length']
-            ? Unwrapped<'Array', Array, [T[0]]>
-            : Unwrapped<'Tuple', Tuple, T>
+        ? T extends [unknown, ...unknown[]]
+            ? Unwrapped<'Tuple', Tuple, T>
+            : Unwrapped<'Array', Array, [T[0]]>
     : T extends readonly unknown[]
-        ? number extends T['length']
-        ? Unwrapped<'ReadonlyArray', ReadonlyArray, [T[0]]>
-        : Unwrapped<'ReadonlyTuple', ReadonlyTuple, ToTuple<T>>
+        ? T extends readonly [unknown, ...unknown[]]
+            ? Unwrapped<'ReadonlyTuple', ReadonlyTuple, Mutable<T>>
+            : Unwrapped<'ReadonlyArray', ReadonlyArray, [T[0]]>
     : never
+
+type Mutable<T> = {
+    -readonly[K in keyof T]: K extends ArrayKeys ? T[K] : T[K]
+}; 
 
 type _unwrap<T, From extends SearchList, R = {
     [K in keyof From as K extends ArrayKeys ? never : K extends string ? K : never]:
