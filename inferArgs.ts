@@ -12,6 +12,7 @@ type inferArgs<T, $T extends Type> =
 
 interface Extract<T extends unknown[]> {
     [k: number]: unknown[]
+    0: []
     1: [T[0]]
     2: [T[0], T[1]]
     3: [T[0], T[1], T[2]]
