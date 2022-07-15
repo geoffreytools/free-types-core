@@ -1,6 +1,6 @@
 export { Natural, Prev, Next, Subtract }
 
-export { ArrayKeys, Slice, ToTuple, Tuple }
+export { ArrayKeys, Slice, ToTuple, Tuple, Head, Tail, Last, Init }
 
 export { Extends, Eq, IsUnknown, IsAny }
 
@@ -54,6 +54,17 @@ type Tuple <L extends number, T = unknown, R extends unknown[] = []> =
     number extends L ? T[]
     : L extends R['length'] ? R
     : Tuple<L, T, [T, ...R]>;
+
+type Head<T extends [unknown, ...unknown[]]> = T[0];
+
+type Tail<T extends [unknown, ...unknown[]]> =
+    T extends [unknown, ...infer R] ? R : never;
+
+type Last<T extends unknown[]> = T[Prev<T['length']>]
+
+type Init<T extends [unknown, ...unknown[]]> =
+    T extends [...infer R, unknown] ? R : never;
+
 
 // Logic
 
