@@ -1,6 +1,5 @@
 export * from './apply';
 export * from './partial';
-export * from './partialRight';
 export * from './Remaining';
 export * from './Type';
 export * from './Const';
