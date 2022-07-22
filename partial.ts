@@ -35,7 +35,7 @@ type partialRight<$T extends Type, Args extends PartialRight<$T['constraints']>>
 type PartialRight<T extends unknown[], R = never> =
     T extends [unknown, ...(infer Rest)]
     ? PartialRight<Rest, T | R>
-    : R
+    : [] | R
 
 interface PartialType<
     $T extends Type,
