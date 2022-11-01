@@ -24,7 +24,7 @@ type _partial <$T extends Type, Args extends unknown[]> =
         Args,
         Slice<$T['constraints'],
         Args['length'],
-        $T['constraints']['length']>,
+        Required<$T['constraints']>['length']>,
         'left'
     >
 
@@ -37,7 +37,7 @@ type partialRight<
     $T extends $Model ? PartialType<
         $T,
         Args,
-        Slice<$T['constraints'], 0, Subtract<$T['constraints']['length'], Args['length']>>,
+        Slice<$T['constraints'], 0, Subtract<Required<$T['constraints']>['length'], Args['length']>>,
         'right'
     > : never
 

@@ -35,12 +35,20 @@ type ArrayKeys = Exclude<keyof [], never>;
 type Slice<
     T extends unknown[],
     From extends number,
-    To extends number = T['length'],
+    To extends number = Required<T>['length'],
     I extends number = From,
     R extends unknown[] = [],
 > =
     I extends To ? R
-    : Slice<T, From, To, Next<I>, [...R, T[I]]>;
+    : Slice<T, From, To, Next<I>,
+        IsOptional<T, I> extends true
+        ? [...R, T[I]?]
+        : [...R, T[I]]
+    >
+
+type IsOptional<T extends unknown[], I extends number> = [{
+    [K in T['length'] as K]: K extends I ? never : unknown
+}[I]] extends [never] ? true : false;
 
 type ToTuple<
     T extends readonly unknown[],

@@ -1,6 +1,6 @@
 import { Next, IsUnknown, Prev } from './utils'
 
-export { At, Checked, Lossy, A, B, C, D, E }
+export { At, Checked, Lossy, Optional, A, B, C, D, E }
 
 // Fake `Type` for user friendly error messages
 type Type<N extends number> = {
@@ -8,6 +8,10 @@ type Type<N extends number> = {
     arguments: unknown[]
 }
 
+type Type_ <N extends number> = {
+    constraints: { [K in Prev<N>]?: unknown; }
+    arguments: unknown[]
+}
 type Default = {
     constraints: [0,1,2,3,4]
     arguments: unknown[]
@@ -36,6 +40,21 @@ type Checked<
         ? This['arguments'][N]
         : Fallback
     : never;
+    
+/** - safely index `this`
+ * - works on optional parameters
+ * - defuse the corresponding type constraint with an inline conditional
+ * - optionally take a fallback
+ */
+ type Optional<
+ N extends number,
+ This extends Type_<Next<N>>,
+ Fallback = N extends keyof This['constraints'] ? Exclude<This['constraints'][N], undefined> : never
+> = N extends keyof This['constraints']
+     ? This['arguments'][N] extends Exclude<This['constraints'][N], undefined>
+     ? This['arguments'][N]
+     : Fallback
+ : never;
 
 /** - safely index `this`
  * - intersect the corresponding type constraint

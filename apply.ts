@@ -1,5 +1,5 @@
 import { Type } from './Type';
-import { ArrayKeys, Slice } from './utils';
+import { ArrayKeys, Next } from './utils';
 
 export { apply, $apply, Generic }
 
@@ -19,7 +19,14 @@ type applyUnsafe<
     Args extends unknown[],
 > = number extends $T['constraints']['length']
     ? _apply<$T, Args>
-    : _apply<$T, Slice<Args, 0, $T['constraints']['length']>>;
+    : _apply<$T, Take<Args, Required<$T['constraints']>['length']>>;
 
 type _apply<T extends { type: unknown }, Args> = 
     (T & Omit<Args, ArrayKeys> & { arguments: Args })['type'];
+
+type Take<
+    T extends unknown[],
+    To extends number,
+    I extends number = 0,
+    R extends unknown[] = [],
+> = I extends To ? R : Take<T, To, Next<I>, [...R, T[I]]>
