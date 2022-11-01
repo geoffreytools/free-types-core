@@ -13,7 +13,8 @@ type Default = {
     arguments: unknown[]
 }
 
-/** safely index `this`
+/** - safely index `this`
+ * - optionally take a fallback
 */
 type At<
     N extends number,
@@ -22,7 +23,9 @@ type At<
 > = IsUnknown<This['arguments'][N]> extends true ? Fallback
     : This['arguments'][N]
 
-/** safely index `this` and defuse the corresponding type constraint with an inline conditional
+/** - safely index `this`
+ * - defuse the corresponding type constraint with an inline conditional
+ * - optionally take a fallback
  */
 type Checked<
     N extends number,
@@ -34,7 +37,8 @@ type Checked<
         : Fallback
     : never;
 
-/** safely index `this` and intersect the corresponding type constraint
+/** - safely index `this`
+ * - intersect the corresponding type constraint
  */
 type Lossy<
     N extends number,
@@ -43,32 +47,37 @@ type Lossy<
     ? This['arguments'][N] & This['constraints'][N]
     : never;
 
-/** safely index `this` and intersect the corresponding type constraint
- * equals `0` When no argument is supplied
+/** - safely index `this`
+ * - intersect the corresponding type constraint
+ * - equals `0` When no argument is supplied
 */
 type A<This extends Type<1> = Default> =
     This['arguments'][0] & This['constraints'][0];
 
-/** safely index `this` and intersect the corresponding type constraint
- * equals `1` When no argument is supplied
+/** - safely index `this`
+ * - intersect the corresponding type constraint
+ * - equals `1` When no argument is supplied
 */
 type B<This extends Type<2> = Default> =
     This['arguments'][1] & This['constraints'][1];
 
-/** safely index `this` and intersect the corresponding type constraint
- * equals `2` When no argument is supplied
+/** - safely index `this`
+ * - intersect the corresponding type constraint
+ * - equals `2` When no argument is supplied
 */
 type C<This extends Type<3> = Default> =
     This['arguments'][2] & This['constraints'][2];
 
-/** safely index `this` and intersect the corresponding type constraint
- * equals `3` When no argument is supplied
+/** - safely index `this`
+ * - intersect the corresponding type constraint
+ * - equals `3` When no argument is supplied
 */
 type D<This extends Type<4> = Default> =
     This['arguments'][3] & This['constraints'][3];
 
-/** safely index `this` and intersect the corresponding type constraint
- * equals `4` When no argument is supplied
+/** - safely index `this`
+ * - intersect the corresponding type constraint
+ * - equals `4` When no argument is supplied
 */
 type E<This extends Type<5> = Default> =
     This['arguments'][4] & This['constraints'][4];
