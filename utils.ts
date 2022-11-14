@@ -2,7 +2,7 @@ export { Natural, Prev, Next, Subtract }
 
 export { ArrayKeys, Slice, ToTuple, Tuple, Head, Tail, Last, Init }
 
-export { Extends, Eq, IsUnknown, IsAny }
+export { Extends, Eq, IsUnknown, IsAny, IsOptional }
 
 // Numbers
 
