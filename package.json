@@ -1,6 +1,6 @@
 {
     "name": "free-types-core",
-    "version": "0.4.0",
+    "version": "0.4.2",
     "description": "A type-level library enabling the creation and the manipulation of type constructors which are detached from their type parameters.",
     "keywords:": [
         "higher kinded type",
@@ -9,10 +9,14 @@
     ],
     "exports": {
         ".": {
-            "import": "./index.ts"
+            "import": "./dist/index.js"
         }
     },
-    "types": "./index.ts",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist/*"
+    ],
     "author": "Geoffrey Gourdet",
     "repository": {
         "type": "git",

@@ -1,7 +1,10 @@
 {
     "compilerOptions": {
-        "rootDir": "./",
-        "noEmit": true,
+        "rootDir": "src",
+        "noEmit": false,
+        "declaration": true,
+        "outDir": "./dist",
+        "declarationDir": "./dist",
         "noErrorTruncation": true,
         "moduleResolution": "node",
         "module": "ES2020",
@@ -10,7 +13,5 @@
         "noImplicitAny": true,
         "strict": true
     },
-    "include": [
-        "./index.ts"
-    ]
+    "include": ["src/*.ts"],
 }
