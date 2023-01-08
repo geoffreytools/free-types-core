@@ -10,3 +10,4 @@ export * from './Replace';
 export * from './hkt';
 export * as free from './free-types';
 export { Slice, ToTuple, Head, Tail, Last, Init, IsUnknown, IsOptional } from './utils'
+export { TypesMap } from './TypesMap';
