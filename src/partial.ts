@@ -3,6 +3,7 @@ import { apply } from './apply';
 import { Slice, Subtract, ToTuple } from './utils';
 
 export { partial, partialRight, PartialRight, $partial }
+export { PartialType } // should not be used but can't be private
 
 /** Return a new type based upon `$T`, with `Args` already applied, expecting the remaining arguments */
 type partial <
