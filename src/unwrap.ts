@@ -9,6 +9,17 @@ type Search = Type | SearchList;
 type SearchList = Type[] | Record<string, Type> | Interface;
 type Interface = {[k: string]: any} & { [Symbol.toStringTag]?: never }
 
+declare global {
+    interface SymbolConstructor {
+        readonly toStringTag: unique symbol;
+    }
+    interface Symbol {
+        readonly [Symbol.toStringTag]: string;
+    }
+    
+    var Symbol: SymbolConstructor
+}
+
 export { unwrap, Unwrapped, Search }
 
 /** Decompose a type into its constituents */

@@ -80,3 +80,12 @@ interface $UnaryFunction extends Type<2> {
 interface $Promise extends Type<1> {
     type: Promise<this[0]>
 }
+
+declare global {
+    interface Set<T> {}
+    interface ReadonlySet<T> {}
+    interface WeakSet<T> {}
+    interface Map<K, V> {}
+    interface ReadonlyMap<K, V> {}
+    interface WeakMap<K, V> {}
+}
