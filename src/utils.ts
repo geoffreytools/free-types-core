@@ -37,8 +37,24 @@ type Slice<
     From extends number,
     To extends number = Required<T>['length'],
     I extends number = From,
-    R extends unknown[] = [],
-> =
+    R extends unknown[] = []
+> = number extends To
+    ? SliceOpenEndedTuple<T, From>
+    : SliceTuple<T, From, To, I, R>;
+
+type SliceOpenEndedTuple<
+    T extends unknown[],
+    From extends number,
+> = From extends 0 ? T
+    : T extends [unknown, ...infer R] ? SliceOpenEndedTuple<R, Prev<From>> : never
+
+type SliceTuple<
+    T extends unknown[],
+    From extends number,
+    To extends number = Required<T>['length'],
+    I extends number = From,
+    R extends unknown[] = []
+> = 
     I extends To ? R
     : Slice<T, From, To, Next<I>,
         IsOptional<T, I> extends true
