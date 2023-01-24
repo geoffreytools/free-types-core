@@ -11,20 +11,11 @@ type Type<Input extends number | unknown[] = unknown[], Output = unknown> =
         arguments: unknown[]
     }>
 
-interface CreateType<T extends { type: unknown, constraints: unknown[] }> {
-    type: T['type']
-    constraints: T['constraints']
-    arguments: unknown[]
-    0: unknown
-    1: unknown
-    2: unknown
-    3: unknown
-    4: unknown
-    5: unknown
-    6: unknown
-    7: unknown
-    8: unknown
-    9: unknown
+interface CreateType<T extends { type: unknown; constraints: unknown[] }> {
+    [k: number]: unknown
+    type: T['type'];
+    constraints: T['constraints'];
+    arguments: unknown[];
 }
 
 type Slots<T> = T extends Precomputable
