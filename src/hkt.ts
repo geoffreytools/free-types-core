@@ -6,13 +6,17 @@ export { HKT, Contra }
 type HKT = { HKT: [any, ...any[]] };
 
 /** Expect a free type with contravariant arguments */
-type Contra<$T extends Type, $U extends Type> =
-    $U['constraints'] extends $T['constraints']
-    ? $T['type'] extends $U['type']
+type Contra<$T, $U extends Type> = _Contra<$T, $U>['type']
+
+interface _Contra<$T, $U extends Type> {
+    type: $U['constraints'] extends this['$T']['constraints']
+    ? this['$T']['type'] extends $U['type']
         ? Type
-        : Type<$T['constraints'], $U['type']>
+        : Type<this['$T']['constraints'], $U['type']>
     :  {
-        'Contravariance issue': {
-            'the input': $U['constraints'], 'is not assignable to': $T['constraints']
-        }
-};
+        [K in 'Contravariance issue']: [
+            'the input', $U['constraints'], 'is not assignable to', this['$T']['constraints']
+        ]
+    }
+    $T: $T extends Type ? $T : never
+}
