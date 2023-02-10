@@ -6,7 +6,7 @@ export { HKT, Contra }
 type HKT = { HKT: [any, ...any[]] };
 
 /** Expect a free type with contravariant arguments */
-type Contra<$T, $U extends Type> = _Contra<$T, $U>['type']
+type Contra<$T, $U extends Type> = Type & _Contra<$T, $U>['type']
 
 interface _Contra<$T, $U extends Type> {
     type: $U['constraints'] extends this['$T']['constraints']
