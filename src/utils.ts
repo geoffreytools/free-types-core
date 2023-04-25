@@ -2,7 +2,7 @@ export { Natural, Prev, Next, Subtract }
 
 export { ArrayKeys, Slice, ToTuple, Tuple, Head, Tail, Last, Init }
 
-export { Extends, Eq, IsUnknown, IsAny, IsOptional }
+export { Extends, Eq, And, Not, IsUnknown, IsAny, IsOptional }
 
 // Numbers
 
@@ -98,6 +98,10 @@ type IsAny<T> = Extends<T | anything, T & anything>
 
 type Extends<A, B> = [A] extends [B] ? true : false;
 type Eq<A, B> = [A] extends [B] ? [B] extends [A] ? true : false : false;
+
+type And<A, B> = Fork<A, Fork<B, B, false>, false>;
+type Fork<P, T, F> = P extends false ? F : T;
+type Not<T> = Extends<T, false>;
 
 declare const thing: unique symbol;
 type anything = typeof thing;

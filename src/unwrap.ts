@@ -1,4 +1,4 @@
-import { ArrayKeys, Eq } from './utils'
+import { ArrayKeys, Eq, And, Extends, Not } from './utils'
 import { Type } from './Type';
 import { inferArgs} from './inferArgs';
 import { Generic, apply } from './apply';
@@ -25,7 +25,7 @@ export { unwrap, Unwrapped, Search }
 /** Decompose a type into its constituents */
 
 type unwrap<T, From extends Search = TypesMap> =
-    T extends readonly unknown[] ? unwrapLists<T>
+    And<Extends<T, readonly unknown[]>, Not<Extends<From, Type | Type[]>>> extends true ? unwrapLists<T extends readonly unknown[] ? T : never>
     : _unwrap<T, From extends Type ? [From] : From>
 
 type unwrapLists<T> =
