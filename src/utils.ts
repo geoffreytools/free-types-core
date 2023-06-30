@@ -62,7 +62,7 @@ type SliceTuple<
         : [...R, T[I]]
     >
 
-type IsOptional<T extends unknown[], I extends number> = [{
+type IsOptional<T extends readonly unknown[], I extends number> = [{
     [K in T['length'] as K]: K extends I ? never : unknown
 }[I]] extends [never] ? true : false;
 
