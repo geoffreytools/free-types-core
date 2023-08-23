@@ -33,7 +33,7 @@ type _Subtract<A extends number, B extends number, _A = Prev<A>, _B = Prev<B>> =
 type ArrayKeys = Exclude<keyof [], never>;
 
 type Slice<
-    T extends unknown[],
+    T extends readonly unknown[],
     From extends number,
     To extends number = Required<T>['length'],
     I extends number = From,
@@ -43,13 +43,13 @@ type Slice<
     : SliceTuple<T, From, To, I, R>;
 
 type SliceOpenEndedTuple<
-    T extends unknown[],
+    T extends readonly unknown[],
     From extends number,
 > = From extends 0 ? T
     : T extends [unknown, ...infer R] ? SliceOpenEndedTuple<R, Prev<From>> : never
 
 type SliceTuple<
-    T extends unknown[],
+    T extends readonly unknown[],
     From extends number,
     To extends number = Required<T>['length'],
     I extends number = From,
@@ -79,14 +79,14 @@ type Tuple <L extends number, T = unknown, R extends unknown[] = []> =
     : L extends R['length'] ? R
     : Tuple<L, T, [T, ...R]>;
 
-type Head<T extends [unknown, ...unknown[]]> = T[0];
+type Head<T extends readonly [unknown, ...unknown[]]> = T[0];
 
-type Tail<T extends [unknown, ...unknown[]]> =
+type Tail<T extends readonly [unknown, ...unknown[]]> =
     T extends [unknown, ...infer R] ? R : never;
 
-type Last<T extends unknown[]> = T[Prev<T['length']>]
+type Last<T extends readonly unknown[]> = T[Prev<T['length']>]
 
-type Init<T extends [unknown, ...unknown[]]> =
+type Init<T extends readonly [unknown, ...unknown[]]> =
     T extends [...infer R, unknown] ? R : never;
 
 
