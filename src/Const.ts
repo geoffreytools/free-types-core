@@ -9,6 +9,7 @@ type Const<T> = {
     type: T
     constraints: any
     arguments: any[] & { length: any },
+    labels: any
     0: any
     1: any
     2: any

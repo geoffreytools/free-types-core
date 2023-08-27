@@ -3,68 +3,93 @@ import { Next, IsUnknown, Prev } from './utils'
 export { At, Checked, Lossy, Optional, A, B, C, D, E }
 
 // Fake `Type` for user friendly error messages
-type Type<N extends number> = {
-    constraints: { [K in Prev<N>]: unknown; }
+type Type<N extends number = number> = {
+    constraints: N extends number ? { [K in Prev<N>]: unknown; } : unknown[]
     arguments: unknown[]
+    labels: { [k: string]: number }
 }
 
 type Type_ <N extends number> = {
     constraints: { [K in Prev<N>]?: unknown; }
     arguments: unknown[]
+    labels: { [k: string]: number }
 }
 type Default = {
     constraints: [0,1,2,3,4]
     arguments: unknown[]
+    labels: { [k: string]: number }
 }
 
 /** - safely index `this`
  * - optionally take a fallback
 */
 type At<
-    N extends number,
-    This extends Type<Next<N>>,
-    Fallback = unknown
-> = IsUnknown<This['arguments'][N]> extends true ? Fallback
-    : This['arguments'][N]
+    N extends Check,
+    This extends N extends number ? Type<Next<N>> : Type,
+    Fallback = unknown,
+    Check extends string | number = N extends string ? keyof This['labels'] & string : number
+> = N extends number
+    ? AtImpl<This, Fallback, N>
+    : AtImpl<This, Fallback, This['labels'][N]>;
+
+type AtImpl<This extends Type, Fallback, I extends number> =
+    IsUnknown<This['arguments'][I]> extends true ? Fallback : This['arguments'][I];
+
 
 /** - safely index `this`
  * - defuse the corresponding type constraint with an inline conditional
  * - optionally take a fallback
  */
 type Checked<
-    N extends number,
-    This extends Type<Next<N>>,
-    Fallback = N extends keyof This['constraints'] ? This['constraints'][N] : never
-> = N extends keyof This['constraints']
-        ? This['arguments'][N] extends This['constraints'][N]
-        ? This['arguments'][N]
-        : Fallback
-    : never;
-    
+    N extends Check,
+    This extends N extends number ? Type<Next<N>> : Type,
+    Fallback = N extends number
+        ? This['constraints'][N]
+        : N extends string
+        ? This['constraints'][This['labels'][N]]
+        : never,
+    Check extends string | number = N extends string ? keyof This['labels'] & string : number
+> = N extends number ? CheckedImpl<N, This, Fallback>
+    : CheckedImpl<This['labels'][N], This, Fallback>;
+
+type CheckedImpl<N extends number, This extends Type, Fallback> =
+    This['arguments'][N] extends This['constraints'][N]
+    ? This['arguments'][N]
+    : Fallback;
+
 /** - safely index `this`
  * - works on optional parameters
  * - defuse the corresponding type constraint with an inline conditional
  * - optionally take a fallback
  */
  type Optional<
- N extends number,
- This extends Type_<Next<N>>,
- Fallback = N extends keyof This['constraints'] ? Exclude<This['constraints'][N], undefined> : never
-> = N extends keyof This['constraints']
-     ? This['arguments'][N] extends Exclude<This['constraints'][N], undefined>
-     ? This['arguments'][N]
-     : Fallback
- : never;
+    N extends Check,
+    This extends N extends number ? Type_<Next<N>> : Type,
+    Fallback = N extends number
+        ? Exclude<This['constraints'][N], undefined>
+        : N extends string
+        ? Exclude<This['constraints'][This['labels'][N]], undefined>
+        : never,
+    Check extends string | number = N extends string ? keyof This['labels'] & string : number
+> = N extends number ? OptionalImpl<N, This, Fallback>
+    : OptionalImpl<This['labels'][N], This, Fallback>;
+
+type OptionalImpl<N extends number, This extends Type, Fallback> =
+    This['arguments'][N] extends Exclude<This['constraints'][N], undefined>
+    ? This['arguments'][N]
+    : Fallback
+
 
 /** - safely index `this`
  * - intersect the corresponding type constraint
  */
 type Lossy<
-    N extends number,
-    This extends Type<Next<N>>
-> =  N extends keyof This['constraints']
-    ? This['arguments'][N] & This['constraints'][N]
-    : never;
+    N extends Check,
+    This extends N extends number ? Type<Next<N>> : Type,
+    Check extends string | number = N extends string ? keyof This['labels'] & string : number
+> =  N extends number ? This['arguments'][N] & This['constraints'][N]
+    : This['arguments'][This['labels'][N]] & This['constraints'][This['labels'][N]];
+
 
 /** - safely index `this`
  * - intersect the corresponding type constraint
