@@ -1,10 +1,11 @@
-export { Natural, Prev, Next, Subtract }
-
-export { ArrayKeys, Slice, ToTuple, Tuple, Head, Tail, Last, Init }
-
-export { Extends, Eq, And, Not, IsUnknown, IsAny, IsOptional }
-
 // Numbers
+
+export { Int, Natural, Prev, Next, Subtract }
+
+type Int<T> =
+    T extends number ? T
+    : T extends `${infer I extends number}` ? I
+    : number
 
 type Natural = [0, ..._Next];
 
@@ -29,6 +30,8 @@ type _Subtract<A extends number, B extends number, _A = Prev<A>, _B = Prev<B>> =
     : _Subtract<_A & number, _B & number>;
 
 // Tuples
+
+export { ArrayKeys, Slice, ToTuple, Tuple, GetNumericKeys, Head, Tail, Last, Init, IsOptional}
 
 type ArrayKeys = Exclude<keyof [], never>;
 
@@ -66,13 +69,19 @@ type IsOptional<T extends readonly unknown[], I extends number> = [{
     [K in T['length'] as K]: K extends I ? never : unknown
 }[I]] extends [never] ? true : false;
 
+type GetNumericKeys<T> = number
+    & keyof {[K in keyof T as K extends
+        `${infer I extends number}` ? I : number extends K ? never : K extends
+        infer I extends number ? I : never] : never }
+
 type ToTuple<
-    T extends readonly unknown[],
+    T extends {[k: number]: unknown},
+    Keys extends number = GetNumericKeys<T>,
     I extends number = 0,
     R extends unknown[] = []
-> = any[] extends T ? T[0][]
-    : I extends T['length'] ? R
-    : ToTuple<T, Next<I>, [...R, T[I]]>;
+> = [Keys] extends [never] ? R
+    : ToTuple<T, Exclude<Keys, I>, Next<I>, [...R, T[I]]>;
+
 
 type Tuple <L extends number, T = unknown, R extends unknown[] = []> =
     number extends L ? T[]
@@ -91,6 +100,8 @@ type Init<T extends readonly [unknown, ...unknown[]]> =
 
 
 // Logic
+
+export { Extends, Eq, And, Not, IsUnknown, IsAny }
 
 type IsUnknown<T> = unknown extends T ? IsAny<T> extends false ? true : false : false;
 

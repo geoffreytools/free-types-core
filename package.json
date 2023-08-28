@@ -19,7 +19,7 @@
     },
     "license": "ICS",
     "devDependencies": {
-        "typescript": "^4.7.2"
+        "typescript": "^5.2.2"
     },
     "scripts": {
         "build": "tsc",

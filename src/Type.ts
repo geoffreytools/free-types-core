@@ -1,40 +1,68 @@
-import { Tuple } from './utils';
+import { Tuple, ToTuple, GetNumericKeys, Int } from './utils';
 
-export { Type };
+export { TypeConstructor as Type };
 
-/** Extend `Type<Input?, Output?>` with an interface to produce a free type, or use it as a type constraint.*/
+/** Extend `Type<Input?, Output?>` with an interface to produce a free type, or use it as a type constraint.
+*/
+type TypeConstructor<I extends Input = readonly unknown[], Output = unknown> =
+    Normalise<I, Output> extends infer D extends Descriptor 
+    ? Type<{[K in keyof D]: D[K]}>
+    : never;
 
-type Type<Input extends number | unknown[] = unknown[], Output = unknown, Labels extends string[] = []> =
-    CreateType<{
-        type: Output
-        constraints: Constraints<Input, Slots<Input>>
-        arguments: unknown[],
-        labels: ReverseMap<Labels>
-    }>
+type Normalise<I extends Input, Output> = I extends I ? {
+    type: Output
+    constraints: Constraints<I>
+    names: I extends Detailed
+        ? { [K in keyof I]: I[K][0] }
+        : readonly unknown[] extends I ? {} : { '__' : never },
+} : never;
 
-interface CreateType<T extends { type: unknown; constraints: unknown[], labels: { [k: string]: number } }> {
+type Descriptor = { 
+    type: unknown,
+    constraints: readonly unknown[],
+    names: { [k: string]: number }
+}
+
+type Input = number | readonly unknown[] | PseudoTuple | Detailed;
+type PseudoTuple = { [k: number]: unknown };
+type Detailed = { [k: string]: [index: number, constraint: unknown] };
+
+interface Type<T extends Descriptor> {
     [k: number]: unknown
     type: T['type'];
     constraints: T['constraints'];
+    namedConstraints: {
+        [K in keyof T['names']]: this['constraints'][T['names'][K]]
+    };
     arguments: unknown[];
-    labels: T['labels']
+    names: Omit<T['names'], '__'>
+    arg: {
+        [K in Exclude<keyof T['names'], '__'>] : this[T['names'][K]] extends infer R
+            extends T['constraints'][T['names'][K]]
+                ? R : T['constraints'][T['names'][K]]
+    } & {
+        [K in GetKeys<T['constraints']>]: this[Int<K>] extends infer R
+            extends T['constraints'][Int<K>]
+            ? R : T['constraints'][Int<K>]
+    }
 }
 
-type ReverseMap<T extends string[]> = {
-    [K in keyof T as K extends `${number}` ? T[K] : never]:
-        K extends `${infer I extends number}` ? I : never
-};
+type GetKeys<T, Keys extends number = GetNumericKeys<T>> = Keys | `${Keys}` ;
 
 type Slots<T> = T extends Precomputable
     ? PrecomputedSlots[T & Precomputable]
-    : Tuple<T extends unknown[] ? T['length'] : T extends number ? T : number>;
+    : Tuple<T extends readonly unknown[] ? T['length'] : T extends number ? T : number>;
 
-type Constraints<Input, Slots> =
-    number extends Input ? unknown[]
-    : unknown[] extends Input ? unknown[]
-    : Input extends unknown[] ? Input
-    : Slots
+type Constraints<T> =
+    number extends T ? unknown[]
+    : unknown[] extends T ? unknown[]
+    : readonly unknown[] extends T ? readonly unknown[]
+    : T extends readonly unknown[] ? T
+    : T extends number ? Slots<T>
+    : T extends Detailed ? ToTuple<{ [K in keyof T as T[K][0]]: T[K][1] }>
+    : T extends PseudoTuple ? ToTuple<T>
+    : unknown[];
 
-type PrecomputedSlots = { [I in Precomputable]: Tuple<Seq10[I]> }
+type PrecomputedSlots = { [I in Precomputable]: Tuple<Seq10[I]> };
 type Precomputable = Seq10[number];
 type Seq10 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

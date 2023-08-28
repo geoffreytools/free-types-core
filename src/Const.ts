@@ -8,8 +8,10 @@ export { Const, $Const };
 type Const<T> = {
     type: T
     constraints: any
-    arguments: any[] & { length: any },
-    labels: any
+    arguments: any[] & { length: any }
+    names: any
+    namedConstraints: any
+    arg: any
     0: any
     1: any
     2: any

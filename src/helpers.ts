@@ -6,18 +6,18 @@ export { At, Checked, Lossy, Optional, A, B, C, D, E }
 type Type<N extends number = number> = {
     constraints: N extends number ? { [K in Prev<N>]: unknown; } : unknown[]
     arguments: unknown[]
-    labels: { [k: string]: number }
+    names: { [k: string]: number }
 }
 
 type Type_ <N extends number> = {
     constraints: { [K in Prev<N>]?: unknown; }
     arguments: unknown[]
-    labels: { [k: string]: number }
+    names: { [k: string]: number }
 }
 type Default = {
     constraints: [0,1,2,3,4]
     arguments: unknown[]
-    labels: { [k: string]: number }
+    names: { [k: string]: number }
 }
 
 /** - safely index `this`
@@ -27,10 +27,10 @@ type At<
     N extends Check,
     This extends N extends number ? Type<Next<N>> : Type,
     Fallback = unknown,
-    Check extends string | number = N extends string ? keyof This['labels'] & string : number
+    Check extends string | number = N extends string ? keyof This['names'] & string : number
 > = N extends number
     ? AtImpl<This, Fallback, N>
-    : AtImpl<This, Fallback, This['labels'][N]>;
+    : AtImpl<This, Fallback, This['names'][N]>;
 
 type AtImpl<This extends Type, Fallback, I extends number> =
     IsUnknown<This['arguments'][I]> extends true ? Fallback : This['arguments'][I];
@@ -46,11 +46,11 @@ type Checked<
     Fallback = N extends number
         ? This['constraints'][N]
         : N extends string
-        ? This['constraints'][This['labels'][N]]
+        ? This['constraints'][This['names'][N]]
         : never,
-    Check extends string | number = N extends string ? keyof This['labels'] & string : number
+    Check extends string | number = N extends string ? keyof This['names'] & string : number
 > = N extends number ? CheckedImpl<N, This, Fallback>
-    : CheckedImpl<This['labels'][N], This, Fallback>;
+    : CheckedImpl<This['names'][N], This, Fallback>;
 
 type CheckedImpl<N extends number, This extends Type, Fallback> =
     This['arguments'][N] extends This['constraints'][N]
@@ -68,11 +68,11 @@ type CheckedImpl<N extends number, This extends Type, Fallback> =
     Fallback = N extends number
         ? Exclude<This['constraints'][N], undefined>
         : N extends string
-        ? Exclude<This['constraints'][This['labels'][N]], undefined>
+        ? Exclude<This['constraints'][This['names'][N]], undefined>
         : never,
-    Check extends string | number = N extends string ? keyof This['labels'] & string : number
+    Check extends string | number = N extends string ? keyof This['names'] & string : number
 > = N extends number ? OptionalImpl<N, This, Fallback>
-    : OptionalImpl<This['labels'][N], This, Fallback>;
+    : OptionalImpl<This['names'][N], This, Fallback>;
 
 type OptionalImpl<N extends number, This extends Type, Fallback> =
     This['arguments'][N] extends Exclude<This['constraints'][N], undefined>
@@ -86,9 +86,9 @@ type OptionalImpl<N extends number, This extends Type, Fallback> =
 type Lossy<
     N extends Check,
     This extends N extends number ? Type<Next<N>> : Type,
-    Check extends string | number = N extends string ? keyof This['labels'] & string : number
+    Check extends string | number = N extends string ? keyof This['names'] & string : number
 > =  N extends number ? This['arguments'][N] & This['constraints'][N]
-    : This['arguments'][This['labels'][N]] & This['constraints'][This['labels'][N]];
+    : This['arguments'][This['names'][N]] & This['constraints'][This['names'][N]];
 
 
 /** - safely index `this`
