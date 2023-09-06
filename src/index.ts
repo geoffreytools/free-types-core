@@ -1,8 +1,12 @@
 export * from './apply';
 export * from './partial';
-export * from './Remaining';
-export * from './Type';
+export { Type, Input } from './Type';
+export * from './TypeDoc';
 export * from './Const';
+export { From } from './From';
+export { Flow } from './Flow';
+export * from './$Before';
+export * from './Pipe';
 export * from './helpers';
 export * from './inferArgs';
 export * from './unwrap';
