@@ -1,4 +1,4 @@
-import { Tuple, ToTuple, GetNumericKeys, Int, Natural } from './utils';
+import { Tuple, ToTuple, Int, Natural } from './utils';
 
 export { TypeConstructor as Type, Arg };
 
@@ -19,8 +19,9 @@ type Normalise<I extends Input, Output> = I extends I ? {
 
 type GetIndex<T> = T extends [infer N extends number, any?] ? N : T
 
-type Descriptor = { 
-    type: unknown,
+type Descriptor = { type: unknown } & Desc
+
+type Desc = {
     constraints: readonly unknown[],
     names: { [k: string]: number }
 }
@@ -43,19 +44,47 @@ interface Type<T extends Descriptor> {
 
 type Arg<
     This extends {[k: number]: unknown },
-    T extends Omit<Descriptor, 'type'>
+    T extends Desc
 > = T extends T ? {
-    [K in Exclude<keyof T['names'], '__'> | GetKeys<T['constraints']>]:
-        K extends `${number}` | number
-        ? This[Int<K>] extends infer R
-            extends T['constraints'][Int<K>]
-                ? R : T['constraints'][Int<K>]
-        : This[T['names'][K]] extends infer R
-            extends T['constraints'][T['names'][K]]
-                ? R : T['constraints'][T['names'][K]]
+    [K in RequiredProps<T>]: ArgVal<This, T['names'], T['constraints'], K>
+} & {
+    [K in OptionalProps<T>]? : ArgVal<This, T['names'], T['constraints'], K>
 } : never
 
-type GetKeys<T, Keys extends number = GetNumericKeys<T>> = Keys | `${Keys}` ;
+type ArgVal<
+    This extends {[k: number]: unknown },
+    Names extends { [k: string]: number },
+    Constraints extends readonly unknown[],
+    K
+> = K extends `${number}` | number
+    ? This[Int<K>] extends infer R
+        extends Constraints[Int<K>]
+            ? R : Constraints[Int<K>]
+    : K extends string
+    ? This[Names[K]] extends infer R
+        extends Constraints[Names[K]]
+            ? R : Constraints[Names[K]]
+    : never
+
+type RequiredProps<T extends Desc> =
+    | Exclude<Required<T['names']>, '__'>
+    | Required<T['constraints']>
+
+type OptionalProps<T extends Desc> =
+    | Exclude<Optional<T['names']>, '__'>
+    | Optional<T['constraints']>
+
+type Optional<T> = keyof { [K in keyof T as OptionalPredicate<T, K>]? : never }
+
+type OptionalPredicate<T, K extends keyof T> =
+    {} extends { [P in K]: T[P] } ? number extends K ? never : K extends number ? K : K extends keyof [] ? never : Norm<K> : never;
+
+type Required<T> = keyof { [K in keyof T as RequiredPredicate<T, K>] : never }
+
+type RequiredPredicate<T, K extends keyof T> =
+    {} extends { [P in K]: T[P] } ? never : K extends number ? K : K extends keyof [] ? never : Norm<K>;
+
+type Norm<T> = T extends `${number}` ? Int<T> : T;
 
 type Slots<T> = T extends Precomputable
     ? PrecomputedSlots[T & Precomputable]

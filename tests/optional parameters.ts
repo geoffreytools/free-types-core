@@ -1,6 +1,17 @@
-import { Type, A, B, C, D, apply, Optional, partial } from '../src';
+import { Type, A, B, C, D, apply, Optional, partial, free } from '../src';
 
 import { test } from 'ts-spec';
+
+test('optional parameter in contract', t => {
+    type $Contract = Type<[unknown, unknown?]>;
+
+    type Foo<$T extends $Contract> = apply<$T, ['foo', 'bar']>
+
+    return t.force([
+        t.equal<Foo<free.Id>, 'foo'>(),
+        t.equal<Foo<free.Map>, Map<'foo', 'bar'>>(),
+    ])
+})
 
 test('1 optional parameter', t => {
     interface $OptionalBox3 extends Type<[number, number, number?]> {
