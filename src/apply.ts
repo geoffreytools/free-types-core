@@ -4,9 +4,19 @@ import { ArrayKeys, Next } from './utils';
 export { apply, $apply, Generic }
 
 /** Apply a free type with all its arguments and evaluate the type */
-type apply<$T extends Type, Args extends Check = never, Check = Args extends readonly unknown[] ? $T['constraints' ]: $T['namedConstraints']> =
-    Args extends readonly unknown[] ? applyPositional<$T, [Args] extends [never] ? [] : Args>
-    : Args extends { [k: string]: unknown } ? applyPositional<$T, ToPositional<$T, Args>>
+type apply<
+    $T extends Type,
+    Args extends Check = never,
+    Check = Args extends readonly unknown[] ? $T['constraints' ]: $T['namedConstraints']
+> = (
+        [Args] extends [never] ? []
+        : Args extends readonly unknown[]
+        ? Args
+        : Args extends { [k: string]: unknown }
+        ? ToPositional<$T, Args>
+        : []
+    ) extends infer A extends readonly unknown[]
+    ? applyPositional<$T, A>
     : never;
 
 type ToPositional<
