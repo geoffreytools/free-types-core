@@ -1,6 +1,6 @@
-import { Type } from './Type';
+import { Type, Arg } from './Type';
 import { apply } from './apply';
-import { GetNumericKeys, Int, Slice, Subtract, ToTuple } from './utils';
+import { Slice, Subtract, ToTuple } from './utils';
 
 export { createPartial as partial, partialRight, PartialRight, $partial }
 export { PartialType } // should not be used but can't be private
@@ -59,17 +59,7 @@ interface PartialType<
     >
     names: $T['names']
     namedConstraints: { __: any; };
-    arg: {
-        [K in keyof $T['names']] : this[$T['names'][K] & keyof this] extends infer R
-            extends Constraints[$T['names'][K] & keyof Constraints]
-                ? R : Constraints[$T['names'][K] & keyof Constraints]
-    } & {
-        [K in GetKeys<Constraints>]: this[Int<K>] extends infer R
-            extends Constraints[Int<K>]
-            ? R : Constraints[Int<K>]
-    }
+    arg: Arg<this, { constraints: Constraints, names: $T['names'] }>
     constraints: Constraints
     arguments: unknown[]
 }
-
-type GetKeys<T, Keys extends number = GetNumericKeys<T>> = Keys | `${Keys}` ;

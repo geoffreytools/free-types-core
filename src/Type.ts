@@ -1,6 +1,6 @@
 import { Tuple, ToTuple, GetNumericKeys, Int, Natural } from './utils';
 
-export { TypeConstructor as Type };
+export { TypeConstructor as Type, Arg };
 
 /** Extend `Type<Input?, Output?>` with an interface to produce a free type, or use it as a type constraint.
 */
@@ -38,16 +38,22 @@ interface Type<T extends Descriptor> {
     };
     arguments: unknown[];
     names: Omit<T['names'], '__'>
-    arg: {
-        [K in Exclude<keyof T['names'], '__'>] : this[T['names'][K]] extends infer R
+    arg: Arg<this, T>
+}
+
+type Arg<
+    This extends {[k: number]: unknown },
+    T extends Omit<Descriptor, 'type'>
+> = T extends T ? {
+    [K in Exclude<keyof T['names'], '__'> | GetKeys<T['constraints']>]:
+        K extends `${number}` | number
+        ? This[Int<K>] extends infer R
+            extends T['constraints'][Int<K>]
+                ? R : T['constraints'][Int<K>]
+        : This[T['names'][K]] extends infer R
             extends T['constraints'][T['names'][K]]
                 ? R : T['constraints'][T['names'][K]]
-    } & {
-        [K in GetKeys<T['constraints']>]: this[Int<K>] extends infer R
-            extends T['constraints'][Int<K>]
-            ? R : T['constraints'][Int<K>]
-    }
-}
+} : never
 
 type GetKeys<T, Keys extends number = GetNumericKeys<T>> = Keys | `${Keys}` ;
 
