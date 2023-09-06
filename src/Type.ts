@@ -1,4 +1,4 @@
-import { Tuple, ToTuple, GetNumericKeys, Int } from './utils';
+import { Tuple, ToTuple, GetNumericKeys, Int, Natural } from './utils';
 
 export { TypeConstructor as Type };
 
@@ -26,7 +26,7 @@ type Descriptor = {
 }
 
 type Input = number | readonly unknown[] | PseudoTuple | Detailed;
-type PseudoTuple = { [k: number]: unknown };
+type PseudoTuple = { [K in Natural[number]]: unknown };
 type Detailed = { [k: string]: [index: number, constraint?: unknown] | number };
 
 interface Type<T extends Descriptor> {
