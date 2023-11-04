@@ -1,16 +1,24 @@
 import { group, test } from 'ts-spec'
 import { apply, From } from '../src'
 
-group('parameters', t => {
+test('The template is the implicit return type', t => [
+    t.equal<From<[number, string]>['type'], [number, string]>(),
+    t.equal<From<{ a: number, b: string }>['type'], { a: number, b: string }>(),
+])
+
+group('Parameters', t => {
     test(t('implicit'), t => [
         test(t('N-ary for tuples'), t => {
             type $T = From<[number, string]>;
             type $U = From<[number, string], [0, 1]>;
 
             return t.force([
-                t.equal<$T, $U>(),
                 t.equal<apply<$T, [1, 'foo']>, [1, 'foo']>(),
-                t.equal<$T['constraints'], [number, string]>()
+                t.equal<$T['constraints'], [number, string]>(),
+
+                test('implicit and explit parameters are equivalent', t =>
+                    t.equal<$T, $U>()
+                ),
             ])
         }),
 
@@ -22,9 +30,19 @@ group('parameters', t => {
             type $U = From<{ a: number }, ['a']>;
             
             return t.force([
-                t.equal<$T, $U>(),
                 t.equal<apply<$T, [1]>, { a: 1 }>(),
-                t.equal<$T['constraints'], [number]>()
+                t.equal<$T['constraints'], [number]>(),
+
+                test('implicit and explit parameters are equivalent', t => [
+                    t.equal<$T['constraints'], $U['constraints']>(),
+                    t.equal<$T['type'], $U['type']>(),
+                    t.equal<apply<$T, [1]>, apply<$U, [1]>>(),
+
+                    // except for names
+                    t.equal<$T['names'],{}>(),
+                    t.equal<$U['names'], { a: 0 }>(),
+                ])
+
             ])
         })
     ])
@@ -51,17 +69,48 @@ group('parameters', t => {
         ])
     })
 
-    test(t('optional'), t => {
-        type $T = From<{ a: number, b: string }, ['a', 'b'?]>;
-        type $U = From<[number, string], [0, 1?]>;
+    group(t('optional'), t => {
+        test(t('tuple'), t => {
+            type $T = From<[number, string], [0, 1?]>;
 
-        return t.force([
-            t.equal<apply<$T, [1, 'foo']>, { a: 1, b: 'foo' }>(),
-            t.equal<$T['constraints'],  [number, string?]>(),
-    
-            t.equal<apply<$U, [1, 'foo']>, [1, 'foo']>(),
-            t.equal<$U['constraints'],  [number, string?]>()
-        ])
+            return t.force([
+                t.equal<apply<$T, [1, 'foo']>, [1, 'foo']>(),
+                t.equal<$T['constraints'],  [number, string?]>()
+            ])
+        })
+
+        test(t('auto named'), t => {
+            type FooBar = { foo: number, bar: string };
+            type $FooBar = From<FooBar, ['foo', 'bar'?]>
+        
+            return t.force([
+                t.equal<$FooBar['constraints'], [number, string?]>(),
+                t.equal<$FooBar['namedConstraints'], { foo: number, bar?: string }>(),
+        
+                test(t('omitting optional'), t => [
+                    t.equal<apply<$FooBar, [1]>, { foo: 1, bar: string }>(),
+                    t.equal<apply<$FooBar, {foo: 1}>, { foo: 1, bar: string }>(),
+                ]),
+
+                test(t('all args'), t => [
+                    t.equal<apply<$FooBar, [1, 'a']>, { foo: 1, bar: 'a' }>(),
+                    t.equal<apply<$FooBar, {foo: 1, bar: 'a'}>, { foo: 1, bar: string }>(),
+                ])
+            ])
+        })
+        
+        test(t('renamed'), t => {
+            type FooBar = { foo: number, bar: string };
+            type $FooBar = From<FooBar, [{ foo: 'bibi' }, { bar: 'bubu' }?]>
+        
+            return t.force([
+                t.equal<$FooBar['constraints'], [number, string?]>(),
+                t.equal<$FooBar['namedConstraints'], { bibi: number, bubu?: string }>(),
+        
+                t.equal<apply<$FooBar, [1]>, { foo: 1, bar: string }>(),
+                t.equal<apply<$FooBar, [1, 'a']>, { foo: 1, bar: 'a' }>(),
+            ])
+        })
     })
 
     group(t('named'), t => {
@@ -85,7 +134,7 @@ group('parameters', t => {
             ])
         })
     
-        test('object types', t => {
+        test(t('object types'), t => {
             type $T = From<{foo: string, bar: number}, [{ foo: 'foo' }, { bar: 'bar' }]>
 
             return t.force([
@@ -95,7 +144,7 @@ group('parameters', t => {
             ])
         })
 
-        test('object types with reordering', t => {
+        test(t('object types with reordering'), t => {
             type $T = From<{foo: string, bar: number}, [{ bar: 'bar' }, { foo: 'foo' }]>
     
             return t.force([

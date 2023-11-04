@@ -1,107 +1,135 @@
-import { Tuple, ToTuple, Int, Natural } from './utils';
+import { Tuple, ToTuple, Int, Slice, ArrayLike, ArrayKeys, OptionalKeys, IsAny, NumericKeys } from './utils';
 
-export { TypeConstructor as Type, Arg };
+export { Type, Input, Arg, NamedConstraints, Contra };
+
 
 /** Extend `Type<Input?, Output?>` with an interface to produce a free type, or use it as a type constraint.
 */
-type TypeConstructor<I extends Input = readonly unknown[], Output = unknown> =
-    Normalise<I, Output> extends infer D extends Descriptor 
-    ? Type<{[K in keyof D]: D[K]}>
-    : never;
+type Type<
+    In extends Input = any,
+    Out = unknown,
+> = CreateType<{
+    type: Out,
+    constraints: Constraints<In>,
+    names: In extends Detailed
+        ? { [K in Exclude<keyof In, symbol>]: GetIndex<In[K]> }
+        : None
+}>
 
-type Normalise<I extends Input, Output> = I extends I ? {
-    type: Output
-    constraints: Constraints<I>
-    names: I extends Detailed
-        ? { [K in keyof I]: GetIndex<I[K]> }
-        : readonly unknown[] extends I ? {} : { '__' : never },
-} : never;
+type None = {}
 
-type GetIndex<T> = T extends [infer N extends number, any?] ? N : T
+type Descriptor = { constraints: any, names: any };
 
-type Descriptor = { type: unknown } & Desc
+type Input = 
+    | number
+    | readonly unknown[]
+    | PseudoTuple
+    | Detailed;
 
-type Desc = {
-    constraints: readonly unknown[],
-    names: { [k: string]: number }
-}
+type PseudoTuple = { [k: number]: any, length?: number };
 
-type Input = number | readonly unknown[] | PseudoTuple | Detailed;
-type PseudoTuple = { [K in Natural[number]]: unknown };
-type Detailed = { [k: string]: [index: number, constraint?: unknown] | number };
+type Detailed = {
+    [k: string]: [index: number, constraint?: unknown] | number
+    [k: number]: never
+};
 
-interface Type<T extends Descriptor> {
+interface CreateType<T extends Descriptor> {
     [k: number]: unknown
     type: T['type'];
     constraints: T['constraints'];
-    namedConstraints: {
-        [K in keyof T['names']]: this['constraints'][T['names'][K]]
-    };
+    contra: Contra<T['constraints']>
+    namedConstraints: NamedConstraints<T>; // necessary for type checking in higher order types
+    arg: Arg<this>
     arguments: unknown[];
-    names: Omit<T['names'], '__'>
-    arg: Arg<this, T>
+    names: T['names']
+}
+
+type Contra<T extends Variadic> =
+    any[] extends T
+        ? IsAny<T[number]> extends true
+            ? (constraints: any) => void
+            : (constraints: {[k: number]: T[number]}) => void
+    : NumericKeys<T> extends infer Keys extends number ? Int<OptionalKeys<T>> extends infer O extends number ? (constraints: unknown & {
+        [K in Keys as K extends O ? never : K]: T[K]
+    } & {
+        [K in Keys as K extends O ? K : never]?: T[K]
+    }) => void : never : never;
+
+
+type NamedConstraints<
+    T extends { constraints: any, names: any },
+    O = Int<OptionalKeys<T['constraints']>>
+> = {
+    [K in keyof T['names'] as T['names'][K] extends O ? never : K]:
+        T['constraints'][T['names'][K]]
+} & {
+    [K in keyof T['names'] as T['names'][K] extends O ? K : never]?:
+        T['constraints'][T['names'][K]]
+}
+
+type _Type = {
+    [k: number]: unknown,
+    constraints: ArrayLike,
+    names: { [k: string]: number }
 }
 
 type Arg<
-    This extends {[k: number]: unknown },
-    T extends Desc
-> = T extends T ? {
-    [K in RequiredProps<T>]: ArgVal<This, T['names'], T['constraints'], K>
-} & {
-    [K in OptionalProps<T>]? : ArgVal<This, T['names'], T['constraints'], K>
-} : never
+    This extends _Type,
+    Args = This['names'] & This['constraints'],
+    O extends PropertyKey = FindOptionalKeys<This['constraints'], This['names']>,
+    R extends PropertyKey = Exclude<Norm<Exclude<keyof Args, ArrayKeys>>, O>
+> = & { [K in Norm<R>]: ArgVal<This, K> }
+    & { [K in Norm<O>]? : ArgVal<This, K> }
 
-type ArgVal<
-    This extends {[k: number]: unknown },
-    Names extends { [k: string]: number },
-    Constraints extends readonly unknown[],
-    K
-> = K extends `${number}` | number
-    ? This[Int<K>] extends infer R
-        extends Constraints[Int<K>]
-            ? R : Constraints[Int<K>]
+type FindOptionalKeys<
+    Constraints,
+    Names, 
+    O = Int<OptionalKeys<Constraints>>
+> = O | (
+    keyof {[K in keyof Names as Names[K] extends O ? K : never]: never}
+);
+
+type ArgVal<This extends _Type, K> =
+    K extends `${number}` | number
+    ? Int<K> extends infer Key extends number
+        ? GetValue<This, Key>
+        : never
     : K extends string
-    ? This[Names[K]] extends infer R
-        extends Constraints[Names[K]]
-            ? R : Constraints[Names[K]]
+    ? GetValue<This, This['names'][K]>
     : never
 
-type RequiredProps<T extends Desc> =
-    | Exclude<Required<T['names']>, '__'>
-    | Required<T['constraints']>
-
-type OptionalProps<T extends Desc> =
-    | Exclude<Optional<T['names']>, '__'>
-    | Optional<T['constraints']>
-
-type Optional<T> = keyof { [K in keyof T as OptionalPredicate<T, K>]? : never }
-
-type OptionalPredicate<T, K extends keyof T> =
-    {} extends { [P in K]: T[P] } ? number extends K ? never : K extends number ? K : K extends keyof [] ? never : Norm<K> : never;
-
-type Required<T> = keyof { [K in keyof T as RequiredPredicate<T, K>] : never }
-
-type RequiredPredicate<T, K extends keyof T> =
-    {} extends { [P in K]: T[P] } ? never : K extends number ? K : K extends keyof [] ? never : Norm<K>;
+type GetValue<This extends _Type, I extends number> =
+This['constraints'][I] extends infer Constraint ?
+    This[I] extends Constraint ? This[I]
+    : Constraint & This[I]
+    //           ---------
+    // necessary for staticland HKT
+: never
 
 type Norm<T> = T extends `${number}` ? Int<T> : T;
 
-type Slots<T> = T extends Precomputable
-    ? PrecomputedSlots[T & Precomputable]
-    : Tuple<T extends readonly unknown[] ? T['length'] : T extends number ? T : number>;
+type Unconstrained = { [k: number]: any }
+type Variadic = { [k: number]: unknown }
 
 type Constraints<T> =
-    number extends T ? unknown[]
-    : unknown[] extends T ? unknown[]
-    : readonly unknown[] extends T ? readonly unknown[]
+    IsAny<T> extends true ? Unconstrained
+    : unknown[] extends T
+        ? IsAny<Extract<T, unknown[]>[number]> extends true
+            ? Unconstrained
+            : Variadic
+    : readonly unknown[] extends T ? Variadic
     : T extends readonly unknown[] ? T
-    : T extends number ? Slots<T>
-    : T extends Detailed ? ToTuple<{
-        [K in keyof T as GetIndex<T[K]>]: T[K] extends [any, infer A] ? A : unknown
-    }>
-    : T extends PseudoTuple ? ToTuple<T>
-    : unknown[];
+    : T extends number ? number extends T ? Variadic : Tuple<T, any>
+    : T extends Detailed ? DetailedToConstraints<T>
+    : T extends PseudoTuple
+        ? T extends ArrayLike ? Slice<T, 0, T['length']>
+        : ToTuple<T>
+    : Variadic;
 
-type PrecomputedSlots = { [I in Precomputable]: Tuple<Seq10[I]> };
-type Precomputable = Seq10[number];
-type Seq10 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+type DetailedToConstraints<T extends Detailed> = ToTuple<{
+    [K in keyof T as GetIndex<T[K]>]: GetConstraint<T[K]>
+}>
+
+type GetIndex<T> = Exclude<T extends [infer N extends number, any?] ? N : T, undefined>
+type GetConstraint<T> = Exclude<T, undefined> extends [any, infer C] ? C : unknown

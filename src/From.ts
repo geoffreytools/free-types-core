@@ -1,76 +1,88 @@
-import { ArrayLike, Next, IsOptional, Mappable, Union2Tuple } from './utils';
+import { NamedConstraints } from './Type';
+import { ArrayLike, Next, IsOptional, Mappable, Union2Tuple, Int } from './utils';
 
 export { From };
 
-type Named = {[k: number]: { [k: PropertyKey]: string } }
+type Named = ({ [k: PropertyKey]: string } | undefined)[]
 
 /** Create a new `Type` based upon a Mappable `T`.
  * 
- * Optionally take a tuple `Args` to specify which fields to turn into a parameter and in what order they must be applied. Parameters cam be named or set to be optional
+ * Optionally take a tuple `Args` to specify which fields to turn into a parameter and in what order they must be applied. Parameters can be set to be optional. Named parameters are created automatically for object types, they can be renamed.
  * 
  * */
 
 type From<
     T extends Mappable<any>,
-    Args extends readonly (Keys | undefined)[] | Named = never,
-    Keys extends PropertyKey = keyof T
-> = [Args] extends [never]
-    ? $From<T, {}, T extends unknown[] ? GetIndices<T> : Union2Tuple<Keys>>
+    Args extends readonly (keyof T | undefined)[] | Named = never,
+> = (
+    [Args] extends [never]
+    ? (T extends unknown[] ? GetIndices<T> : Union2Tuple<keyof T>) extends infer K
+        ? {
+            type: T
+            constraints: PseudoTuple<T, K>
+            names: {},
+            keys: K,
+         } : never
     : Args extends Named
-    ? $From<T, GetNames<Args>, ReverseMapTuple<Args>, ToConstraints<T, Args>>
-    : $From<T, {}, NormalizeArgs<Args>>
+    ? {
+        type: T,
+        constraints: ToConstraints<T, Args>
+        names: GetNames<Args>,
+        keys: GetKeys<Args>,
+    } : {
+        type: T,
+        constraints: PseudoTuple<T, Args>
+        names: Args extends (string | undefined)[] ? GenerateNames<Args> : {},
+        keys: Required<Args>,
+    }
+) extends infer D extends Descriptor ? FromTemplate<D> : never
 
+type Descriptor = {
+    type: any, constraints: any, names: any, keys: any
+}
 
-interface $From<
-    T,
-    Names extends { [k: string]: any },
-    Keys extends ArrayLike,
-    C extends ArrayLike = PseudoTuple<T, Keys>
-> {
+interface FromTemplate<D extends Descriptor> {
     [k: number]: unknown
-    type: { [K in keyof T]: SelectValue<
-        T[K],
-        this['arguments'],
-        IndexOf<K, Keys>,
-        Keys
-    >}
-    namedConstraints: { [K in keyof Names]: C[Names[K]] };
-    names: Names
-    constraints: C
+    type: D['type'] extends infer Type ?  unknown[] extends this['arguments'] ? Type : {
+        [K in keyof Type]: Value<Type[K], this['arguments'], IndexOf<K, D['keys']>, D['constraints']>
+    } : never
+    namedConstraints: NamedConstraints<D>;
+    names: D['names']
+    constraints: D['constraints']
     arguments: unknown[]
 }
 
 type GetIndices<T extends unknown[]> = { [K in keyof T]-?: K }
 
-type SelectValue<T, This extends ArrayLike, I, Keys extends ArrayLike> =
+export type Value<T, This extends ArrayLike, I, Constraints extends ArrayLike> =
     [I] extends [never] ? T
     : This[I & number] extends infer Arg ? ( 
-        IsOptional<Keys, I> extends true
+        IsOptional<Constraints, I> extends true
         ? Arg extends undefined ? T : Arg
         : Arg
     ) : never
 
-type IndexOf<T, Ts extends ArrayLike, L = Required<Ts>['length'], I = 0> =
+export type IndexOf<T, Ts extends ArrayLike, L = Required<Ts>['length'], I = 0> =
     I extends L ? never
     : [T] extends [`${Ts[I & number]}`] ? I
     : IndexOf<T, Ts, L, Next<I>>;
-
-type NormalizeArgs<T> = Extract<{
-    [K in keyof T]: T[K] extends number ? `${T[K]}` : T[K]
-}, ArrayLike>
 
 type PseudoTuple<T, Keys> = {
     [K in keyof Keys]: Exclude<T[Keys[K] & keyof T], undefined>
 }
 
-type ToConstraints<T extends Mappable<any>, Args extends Named> = Extract<{
-    [K in keyof Args]: T[keyof Args[K] & keyof T]
-}, ArrayLike>
+type ToConstraints<T, Args extends Named> = {
+    [K in keyof Args]: T[keyof (Args[K] & {}) & keyof T]
+}
 
-type ReverseMapTuple<Args extends Named> = Extract<{
-    [K in keyof Args]: keyof Args[K]
-}, ArrayLike>
+type GetKeys<Args extends Named, R = Required<Args>> = {
+    [K in keyof R]: keyof R[K]
+}
 
-type GetNames<Args extends Named> = unknown & {
-    [K in keyof Args as Args[K & `${number}`][keyof Args[K]]]: K
+type GetNames<Args extends Named, T extends Required<Named> = Required<Args>> = unknown & {
+    [K in keyof T as T[K & `${number}`][keyof T[K]]]: Int<K>
+}
+
+type GenerateNames<Args extends (string|undefined)[]> = unknown & {
+    [K in Exclude<keyof Args, keyof []> as Args[K] & string]: Int<K>
 }

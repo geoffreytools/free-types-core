@@ -1,12 +1,12 @@
-import { ArrayKeys, Eq, And, Extends, Not, IsAny } from './utils'
+import { ArrayKeys, Eq, IsAny } from './utils'
 import { Type } from './Type';
 import { inferArgs} from './inferArgs';
-import { Generic, apply } from './apply';
+import { Generic, _apply, _Type } from './apply';
 import { TypesMap } from './TypesMap';
 import { Tuple, ReadonlyTuple, Array, ReadonlyArray } from './free-types';
 
-type Search = Type | SearchList;
-type SearchList = Type[] | Record<string, Type> | Interface;
+type Search = _Type | SearchList;
+type SearchList = _Type[] | Record<string, _Type> | Interface;
 type Interface = {[k: string]: any} & { [Symbol.toStringTag]?: never }
 
 declare global {
@@ -26,43 +26,41 @@ export { unwrap, Unwrapped, Search }
 
 type unwrap<T, From extends Search = TypesMap> =
     IsAny<T> extends true ? Any
-    : And<Extends<T, readonly unknown[]>, Not<Extends<From, Type | Type[]>>> extends true ? unwrapLists<T extends readonly unknown[] ? T : never>
-    : _unwrap<T, From extends Type ? [From] : From>
+    : (T extends readonly unknown[] ?
+        From extends _Type | _Type[] ? null : unwrapLists<T> : null
+    ) extends infer R extends Unwrapped ? R
+    : _unwrap<T, From extends _Type ? [From] : From>
 
-type unwrapLists<T> =
+type unwrapLists<T extends readonly unknown[]> =
     T extends unknown[]
-        ? T extends [unknown, ...unknown[]]
-            ? Unwrapped<'Tuple', Tuple, T>
-            : Unwrapped<'Array', Array, [T[0]]>
-    : T extends readonly [unknown, ...unknown[]]
-    ? Unwrapped<'ReadonlyTuple', ReadonlyTuple, Mutable<T>>
-    : Unwrapped<'ReadonlyArray', ReadonlyArray, [(T & unknown[])[0]]>
+        ? any[] extends T
+            ? Unwrapped<'Array', Array, [T[0]]>
+            : Unwrapped<'Tuple', Tuple, T>
+    : readonly any[] extends T
+    ? Unwrapped<'ReadonlyArray', ReadonlyArray, [T[0]]>
+    : Unwrapped<'ReadonlyTuple', ReadonlyTuple, Mutable<T>>
 
-type Mutable<T> = {
-    -readonly[K in keyof T]: K extends ArrayKeys ? T[K] : T[K]
-}; 
+type Mutable<T> = { -readonly[K in keyof T]: T[K] }; 
 
-type _unwrap<T, From extends SearchList, R = {
+type _unwrap<T, From> = {
     [K in keyof From as K extends ArrayKeys ? never : K extends string ? K : never]:
-        From[K] extends Type ? Branch<T, From[K], K>[
-            T extends Generic<From[K]> ? 'match' : 'miss'
-        ] : never
-}> = R[keyof R];
+        From[K] extends _Type
+        ? T extends Generic<From[K]>
+            ? Disambiguate<T, From[K], inferArgs<T, From[K]>, K & string>
+            : never
+        : never
+} extends infer R ? R[keyof R] : never;
 
-interface Branch<T, $T extends Type, K> {
-    match: Disambiguate<T, $T, inferArgs<T, $T>, K & string>
-    miss: never
-}
 
-type Disambiguate<T, $T extends Type, Args extends unknown[], K extends string> =
-    Eq<T, apply<$T, Args>> extends true
+type Disambiguate<T, $T extends _Type, Args extends unknown[], K extends string> =
+    Eq<T, _apply<$T, Args>> extends true
     ? Unwrapped<K, $T, Args>
     : never
 
 /** The result of unwrapping a type with `unwrap` */
 type Unwrapped<
     URI extends string = string,
-    T extends Type = Type,
+    T extends _Type = Type,
     A = unknown[]
 > = { URI: URI, type: T, args: A };
 

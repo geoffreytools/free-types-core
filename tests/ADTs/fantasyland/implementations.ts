@@ -30,10 +30,10 @@ export {
 
 /* interfaces */
 
-type $Apply<Args extends Input = number> =
+type $Apply<Args extends Input = any> =
     Type<Args, Apply<Type>>;
 
-type $Functor<Args extends Input =number> =
+type $Functor<Args extends Input = any> =
     Type<Args, Functor<Type>>;
 
 interface Functor<$F extends Type> extends HKT {

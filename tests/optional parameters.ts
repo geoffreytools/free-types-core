@@ -1,11 +1,11 @@
-import { Type, A, B, C, D, apply, Optional, partial, free } from '../src';
+import { Type, A, B, C, D, apply, Optional, partial, free, Expect } from '../src';
 
 import { test } from 'ts-spec';
 
 test('optional parameter in contract', t => {
-    type $Contract = Type<[unknown, unknown?]>;
+    type $Contract = Type<[unknown, unknown]>;
 
-    type Foo<$T extends $Contract> = apply<$T, ['foo', 'bar']>
+    type Foo<$T extends Expect<$Contract>> = apply<$T, ['foo', 'bar']>
 
     return t.force([
         t.equal<Foo<free.Id>, 'foo'>(),
@@ -18,10 +18,10 @@ test('1 optional parameter', t => {
         type: `${A<this>} x ${B<this>} x ${Optional<C, this>}`
     }
     
-    return [
+    return t.force([
         t.equal<apply<$OptionalBox3, [1, 2]>, `1 x 2 x ${number}`>(),
         t.equal<apply<$OptionalBox3, [1, 2, 3]>, `1 x 2 x 3`>()
-    ]
+    ])
 })
 
 test('2 optional parameters', t => {
@@ -29,11 +29,11 @@ test('2 optional parameters', t => {
         type: `${A<this>} x ${Optional<B, this>} x ${Optional<C, this>}`
     }
     
-    return [
+    return t.force([
         t.equal<apply<$OptionalBox3, [1]>, `1 x ${number} x ${number}`>(),
         t.equal<apply<$OptionalBox3, [1, 2]>, `1 x 2 x ${number}`>(),
         t.equal<apply<$OptionalBox3, [1, 2, 3]>, `1 x 2 x 3`>()
-    ]
+    ])
 })
 
 
@@ -47,10 +47,10 @@ test('Default value', t => {
         type: `${A<this>} x ${B<this>} x ${Optional<C, this, B<this>>}`
     }
     
-    return [
+    return t.force([
         t.equal<apply<$OptionalBox3, [1, 2]>, `1 x 2 x 2`>(),
         t.equal<apply<$OptionalBox3, [1, 2, 3]>, `1 x 2 x 3`>()
-    ]
+    ])
 })
 
 {

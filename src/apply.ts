@@ -1,63 +1,83 @@
 import { Type } from './Type';
-import { ArrayKeys, Next } from './utils';
+import { ArrayLike, ArrayKeys, Indexable, Next, OptionalKeys, ReverseMap } from './utils';
 
-export { apply, $apply, Generic }
+export { apply, _apply, _applyPositional as applyPositional, $apply, Generic, _Type }
 
-/** Apply a free type with all its arguments and evaluate the type */
-type apply<
-    $T extends Type,
-    Args extends Check = never,
-    Check = Args extends readonly unknown[] ? $T['constraints' ]: $T['namedConstraints']
-> = (
-        [Args] extends [never] ? []
-        : Args extends readonly unknown[]
-        ? Args
-        : Args extends { [k: string]: unknown }
-        ? ToPositional<$T, Args>
-        : []
-    ) extends infer A extends readonly unknown[]
-    ? applyPositional<$T, A>
-    : never;
-
-type ToPositional<
-    $T extends NamedType,
-    Args extends { [k: string]: unknown },
-    Names extends { [k: number]: string } = RecoverNames<$T['names']>,
-    I extends number = 0,
-    R extends unknown[] = []
-> = I extends $T['constraints']['length'] ? R
-    : ToPositional<$T, Args,  Names, Next<I>, [...R, Args[Names[I]]]>;
-
-type RecoverNames<T extends Names> = { [K in keyof T as T[K]]: K };
-
-type NamedType = {
-    type: unknown,
-    constraints: { [k: number]: unknown, length: number },
-    names: Names
+/** A type definition to be used as a type constraint in internal library code to improve performance */
+type _Type<I = any, O = unknown> =  {
+    type: O,
+    constraints: I,
+    names: any,
+    namedConstraints: any
 };
+
+type PositionalType = { type: unknown, constraints: Indexable }
 
 type Names = { [k: string]: number };
 
-interface $apply<Args extends unknown[] = []> extends Type<[Type]> {
-    type: apply<this[0] extends Type ? this[0] : Type, Args>
+/** Apply a free type with all its arguments and evaluate the type */
+type apply<
+    $T extends _Type,
+    Args extends Check = never,
+    Check = Args extends ArrayLike ? $T['constraints']: $T['namedConstraints'] & CheckDynamicNames<$T>
+> = applyPositional<$T, (
+    [Args] extends [never] ? []
+    : Args extends ArrayLike
+    ? Args
+    : Args extends { [k: string]: unknown }
+    ? ToPositional<GetLength<$T['constraints']>, Args,  RecoverNames<$T['names']>>
+    : []
+)>
+
+// may seem redundant with `namedConstraints` but this check is necessary for types which declare their named parameters with the `names` field
+type CheckDynamicNames<
+    $T extends _Type,
+    O = ReverseMap<$T['names']>[OptionalKeys<$T['constraints']>]
+> = {
+    [K in $T['names'] extends infer N ? Exclude<keyof N, O> : never]:
+        $T['constraints'][$T['names'][K]]
+} & {
+    [K in $T['names'] extends infer N ? Extract<keyof N, O> : never]?:
+        $T['constraints'][$T['names'][K]]
+}
+
+type GetLength<T> = Extract<T extends ArrayLike ? T['length'] : number, number>
+
+type _applyPositional<
+    $T extends PositionalType,
+    Args extends $T['constraints'] = []
+> = applyPositional<$T, Args>
+
+type ToPositional<
+    L extends number,
+    Args extends { [k: string]: unknown },
+    Names extends { [k: number]: string },
+    I extends number = 0,
+    R extends any[] = []
+> = I extends L ? R
+    : ToPositional<L, Args,  Names, Next<I>, [...R, Args[Names[I]]]>;
+
+type RecoverNames<T extends Names> = { [K in keyof T as T[K]]: K };
+
+interface $apply<Args extends ArrayLike = []> extends Type<[_Type]> {
+    type: this[0] extends _Type ? _apply<this[0], Args> : unknown
 }
 
 /** Apply a free type `$T` with its type constraints. */
-type Generic<$T extends Type> = _apply<$T, $T['constraints']>;
+type Generic<$T extends _Type> = _apply<$T, $T['constraints']>;
 
 type applyPositional<
-    $T extends { type: unknown, constraints: {length: number }},
-    Args extends readonly unknown[],
-> = number extends $T['constraints']['length']
+    $T extends PositionalType,
+    Args extends Indexable,
+> = number extends GetLength<$T['constraints']>
     ? _apply<$T, Args>
-    : _apply<$T, Take<Args, Required<$T['constraints']>['length']>>;
+    : _apply<$T, Take<Args, 0, GetLength<Required<$T['constraints']>>>>;
 
-type _apply<T extends { type: unknown }, Args> = 
-    (T & Omit<Args, ArrayKeys> & { arguments: Args })['type'];
+/** A looser version of `apply` which can be used in internal library code to improve performance */
+type _apply<$T extends { type: unknown }, Args extends _Constraints> = 
+    ($T & Omit<Args, ArrayKeys> & { arguments: Args })['type'];
 
-type Take<
-    T extends readonly unknown[],
-    To extends number,
-    I extends number = 0,
-    R extends unknown[] = [],
-> = I extends To ? R : Take<T, To, Next<I>, [...R, T[I]]>;
+type _Constraints = { [k: number]: unknown }
+
+type Take<T extends Indexable, From extends number, To, R extends any[] = []> =
+    From extends To ? R : Take<T, Next<From>, To, [...R, T[From]]>;

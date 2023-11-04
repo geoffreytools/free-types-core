@@ -1,25 +1,56 @@
-import { test } from 'ts-spec';
-import { Type, apply, partial, A, B, C } from '../../src'
+import { test, Context } from 'ts-spec';
+import { Type, apply, partial, A, B, C, ToTuple } from '../../src'
 
-interface $Cuboid extends Type<[number, number, number]> {
-    type: `H${A<this>} W${B<this>} L${C<this>}`
+test('arguments are wired correctly', t => {
+    interface $Arg extends Type<[number, number]> {
+        type: this['arg']
+    }
+    
+    interface $Arguments extends Type<[number, number]> {
+        type: ToTuple<this['arguments']>
+    }
+
+    return [
+        test(t('this["arg"] returns the most accurate answer'), t =>
+            t.equal<partial<$Arg, [1]>['type'], {0: 1, 1: number}>()
+        ),
+
+        test(t('this["arguments"] preserves `unknown` values'), t =>
+            t.equal<partial<$Arguments, [1]>['type'], [1, unknown]>()
+        )
+    ];
+})
+
+type Cuboid<
+    A extends number = number,
+    B extends number = number,
+    C extends number = number
+> = `H${A} W${B} L${C}`
+
+interface $Cuboid extends Type<{A: [0, number], B: [1, number], C: [2, number]}> {
+    type: Cuboid<A<this>, B<this>, C<this>>
 }
 
-test('partially apply 0 argument', t => [
-    t.equal<apply<partial<$Cuboid, []>, [1, 2, 3]>, "H1 W2 L3">(),
+test('inferred partial type', t => [
+    t.equal<partial<$Cuboid, []>['type'], Cuboid>(),
+    t.equal<partial<$Cuboid, [1]>['type'], Cuboid<1>>(),
+    t.equal<partial<$Cuboid, [1, 2]>['type'], Cuboid<1, 2>>(),
+    t.equal<partial<$Cuboid, [1, 2, 3]>['type'], Cuboid<1, 2, 3>>()
 ])
 
-test('partially apply 1 argument', t => [
-    t.equal<apply<partial<$Cuboid, [1]>, [2, 3]>, "H1 W2 L3">(),
-])
+const OK = <D extends string>(t: Context<D>) => t.equal<Cuboid<1, 2, 3>>()
 
-test('partially apply 2 arguments', t => [
-    t.equal<apply<partial<$Cuboid, [1, 2]>, [3]>, "H1 W2 L3">(),
-])
-
-test('partially apply all arguments', t => [
-    t.equal<apply<partial<$Cuboid, [1, 2, 3]>, []>, "H1 W2 L3">(),
-    t.equal<apply<partial<$Cuboid, [1, 2, 3]>>, "H1 W2 L3">(),
+test('partially apply', t => [
+    test('partially apply 0 argument', t => OK(t)<apply<partial<$Cuboid, []>, [1, 2, 3]>>()),
+    
+    test('partially apply 1 argument', t => OK(t)<apply<partial<$Cuboid, [1]>, [2, 3]>>()),
+    
+    test('partially apply 2 arguments', t => OK(t)<apply<partial<$Cuboid, [1, 2]>, [3]>>()),
+    
+    test('partially apply all arguments', t => [
+        OK(t)<apply<partial<$Cuboid, [1, 2, 3]>, []>>(),
+        OK(t)<apply<partial<$Cuboid, [1, 2, 3]>>>()
+    ])
 ])
 
 test('incrementally apply arguments', t => [
