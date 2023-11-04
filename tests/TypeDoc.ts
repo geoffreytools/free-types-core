@@ -1,11 +1,16 @@
 import { test } from 'ts-spec'
-import { Type, TypeDoc, apply } from '../src'
+import { Type, TypeDoc, apply, Expect } from '../src'
 
 type $Exclaim = TypeDoc<$Impl>;
 
 interface $Impl extends Type<{T: [0, string]}> {
     type: `${this['arg'][0]}!`
 }
+
+type Indirect<$T extends Expect<Type<['foo'], string>>> = apply<$T, ['foo']>
+
+// Typedoc does not change variance
+type Try = Indirect<$Exclaim>;
 
 test('TypeDoc is transparent', t => [
     t.equal<apply<$Exclaim, ['a']>, 'a!'>(),

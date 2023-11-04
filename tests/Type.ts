@@ -1,6 +1,13 @@
 import { test } from 'ts-spec';
 import { Type } from '../src';
 
+{
+    type Indirect<$T extends Type<[number], string>> = $T;
+    
+    // Type is covariant on its return type
+    type Accept = Indirect<Type<[number], 'a'>>
+}
+
 test('required positional parameters', t => [
     t.equal<
         Type<[number, unknown, string]>['constraints'],
@@ -41,19 +48,24 @@ test('optional named parameters', t => [
         Type<{T: [0, number], U?: [1, string]}>['names'],
         { T: 0, U: 1 }
     >()
-])
+]);
 
-type Unconstrained = { [k: number]: unknown }
+type Variadic = { [k: number]: unknown }
+type Unconstrained = { [k: number]: any }
 
 test('shorthands', t => [
     test(t('variadic'), t => [
-        t.equal<Type<number>['constraints'], Unconstrained>(),
-        t.includes<Type<unknown[]>['constraints'], Unconstrained>(),
-        t.includes<Type['constraints'], Unconstrained>()
+        t.equal<Type<number>['constraints'], Variadic>(),
+        t.includes<Type<unknown[]>['constraints'], Variadic>(),
+        t.includes<Type['constraints'], Variadic>()
     ]),
 
+    test(t('unconstrained'), t =>
+        t.equal<Type['constraints'], Unconstrained>()
+    ),
+
     test(t('arity'), t =>
-        t.equal<Type<2>['constraints'], [unknown, unknown]>()
+        t.equal<Type<2>['constraints'], [any, any]>()
     ),
 
     test(t('sparse numeric keys'), t => [

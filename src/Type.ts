@@ -9,7 +9,8 @@ type Type<
     In extends Input = any,
     Out = unknown,
 > = CreateType<{
-    type: Out,
+    type: Out
+},{
     constraints: Constraints<In>,
     names: In extends Detailed
         ? { [K in Exclude<keyof In, symbol>]: GetIndex<In[K]> }
@@ -33,9 +34,9 @@ type Detailed = {
     [k: number]: never
 };
 
-interface CreateType<T extends Descriptor> {
+interface CreateType<Out extends { type: any }, T extends Descriptor> {
     [k: number]: unknown
-    type: T['type'];
+    type: Out['type'];
     constraints: T['constraints'];
     contra: Contra<T['constraints']>
     namedConstraints: NamedConstraints<T>; // necessary for type checking in higher order types
