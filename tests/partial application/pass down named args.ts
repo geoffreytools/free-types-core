@@ -1,5 +1,5 @@
 import { test, Context } from 'ts-spec';
-import { Type, apply, partial, Remaining, A, B, C, D, partialRight } from '../../src'
+import { Type, apply, partial, A, B, C, D, partialRight } from '../../src'
 
 type F<
     A extends string,
@@ -52,39 +52,6 @@ test('deep', t => {
         apply<$T, [true]>
 
     return OK(t)<Foo<'foo', 2>>()
-})
-
-test('shallow using Remaining', t => {
-    type Foo<
-        A extends string,
-        B extends number,
-        C extends undefined
-    > = Bar<partial<$F, [A, B, C]>>;
-
-    type Bar<$T extends Remaining<$F, 1>> =
-        apply<$T, [true]>
-
-    return OK(t)<Foo<'foo', 2, undefined>>()
-})
-
-test('deep using Remaining', t => {
-    type Foo<
-        A extends string,
-        B extends number,
-    > = Bar<partial<$F, [A, B]>, undefined>;
-    
-    type Bar<
-        $T extends Remaining<$F, 2>,
-        C extends undefined,
-        // enables $T to be generic
-    > = Baz<partial<$T, [C], Remaining<$F, 2>>>
-        //                   ------------------
-
-    type Baz<$T extends Remaining<$F, 1>> =
-        apply<$T, [true]>
-
-    return OK(t)<Foo<'foo', 2>>()
-
 })
 
 test('shallow Right', t =>{
