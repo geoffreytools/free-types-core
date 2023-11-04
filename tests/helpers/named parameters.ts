@@ -65,7 +65,7 @@ test('Checked Manual', t => {
 test('Optional manual', t => {
     // doesn't work with auto args yet.
     interface $Foo extends Type {
-        type: Foo<Optional<'foo', this>, Optional<'bar', this>>
+        type: [Optional<'foo', this>, Optional<'bar', this>]
         constraints: [foo?: string, bar?: number]
         names: { foo: 0, bar: 1 }
     }
