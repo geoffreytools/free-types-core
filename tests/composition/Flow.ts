@@ -1,5 +1,5 @@
 import {  test } from 'ts-spec';
-import { Type, apply, partial, Flow } from '../../src';
+import { Type, apply, partial, Flow, Expect } from '../../src';
 
 interface $Exclaim extends Type<[string]> {
     type: `${this['arg'][0]}!`
@@ -86,6 +86,18 @@ test('Higher order types', t => [
     
     test(t('specific arity'), t => {
         type Foo<$T extends Type<2>> = apply<$T, [[1], [2]]>;
+    
+        return t.equal<Foo<Flow<[$Concat, $Push3]>>, [1, 2, 3]>()
+    }),
+
+    test(t('invariant constraint on input'), t => {
+        type Foo<$T extends Type<[unknown[], unknown[]]>> = apply<$T, [[1], [2]]>;
+    
+        return t.equal<Foo<Flow<[$Concat, $Push3]>>, [1, 2, 3]>()
+    }),
+
+    test(t('contravariant constraint on input'), t => {
+        type Foo<$T extends Expect<Type<[number[], number[]]>>> = apply<$T, [[1], [2]]>;
     
         return t.equal<Foo<Flow<[$Concat, $Push3]>>, [1, 2, 3]>()
     })
