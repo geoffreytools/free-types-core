@@ -5,23 +5,22 @@ export { Const, $Const };
 /**
  * Turn a type `T` into a constant `Type<❋, T>`, totally ignoring arity and type constraints on its input.
 */
-type Const<T> = {
+type Const<T> = ConstantType<{
     type: T
-    constraints: any
-    arguments: any[] & { length: any }
+}, {
+    constraints: any,
     names: any
+}>
+
+interface ConstantType<Out extends { type: any }, __> {
+    [k: number]: any
+    type: Out['type']
+    arguments: any[] & { length: any }
     namedConstraints: any
     arg: any
-    0: any
-    1: any
-    2: any
-    3: any
-    4: any
-    5: any
-    6: any
-    7: any
-    8: any
-    9: any
+    constraints: any
+    names: any
+    contra: any
 }
 
 /**
