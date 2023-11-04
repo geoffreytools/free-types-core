@@ -1,5 +1,5 @@
 import { Type } from './Type';
-import { ArrayLike, ArrayKeys, Indexable, Next, OptionalKeys, ReverseMap } from './utils';
+import { ArrayLike, ArrayKeys, Indexable, Next } from './utils';
 
 export { apply, _apply, _applyPositional as applyPositional, $apply, Generic, _Type }
 
@@ -19,7 +19,7 @@ type Names = { [k: string]: number };
 type apply<
     $T extends _Type,
     Args extends Check = never,
-    Check = Args extends ArrayLike ? $T['constraints']: $T['namedConstraints'] & CheckDynamicNames<$T>
+    Check = Args extends ArrayLike ? $T['constraints']: $T['namedConstraints']
 > = applyPositional<$T, (
     [Args] extends [never] ? []
     : Args extends ArrayLike
@@ -28,18 +28,6 @@ type apply<
     ? ToPositional<GetLength<$T['constraints']>, Args,  RecoverNames<$T['names']>>
     : []
 )>
-
-// may seem redundant with `namedConstraints` but this check is necessary for types which declare their named parameters with the `names` field
-type CheckDynamicNames<
-    $T extends _Type,
-    O = ReverseMap<$T['names']>[OptionalKeys<$T['constraints']>]
-> = {
-    [K in $T['names'] extends infer N ? Exclude<keyof N, O> : never]:
-        $T['constraints'][$T['names'][K]]
-} & {
-    [K in $T['names'] extends infer N ? Extract<keyof N, O> : never]?:
-        $T['constraints'][$T['names'][K]]
-}
 
 type GetLength<T> = Extract<T extends ArrayLike ? T['length'] : number, number>
 

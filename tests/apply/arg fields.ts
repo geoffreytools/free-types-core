@@ -22,10 +22,17 @@ test('arg is available dynamically', t => {
         names: { foo: 0, bar: 1 }
     }
 
-    // @ts-expect-error: check dynamic names
+    // Removed feature: defining names in the interface is no longer supported
+
+    // May be possible to support the following
+    // interface $T extends Type<{ foo: 0, bar: 1 }> {
+    //    constraints: [number, string] // override
+    //}
+
+    // Removed feature: @ts-expect-error: check dynamic names
     type BadNames = apply<$NamedFoo, { fo: 1, bar: 'a' }>
 
-    // @ts-expect-error: check dynamic named argument constraints
+    // Removed feature: @ts-expect-error: check dynamic named argument constraints
     type BadConstraints = apply<$NamedFoo, { foo: 'a', bar: 1 }>
 
     return t.force([
