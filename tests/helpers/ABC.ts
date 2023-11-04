@@ -18,6 +18,11 @@ interface $AlphaNumPair extends Type<2> {
     constraints: [string, number]
 }
 
+interface $AlphaNumPair2 extends Type<2> {
+    type: AlphaNumPair<A<this>, B<this>>
+    constraints: [string, number]
+}
+
 test('A apply', t =>
     t.equal<apply<$AlphaNumPair, ['a', 1]>, ['a', 1]>()
 )

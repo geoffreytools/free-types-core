@@ -10,12 +10,13 @@ type AlphaNumPair<A extends string, B extends number> = [A, B];
 }}
 
 {interface $AlphaNumPair extends Type<2> {
-    // @ts-expect-error: Checked defuses constraint
+    // @ts-expect-error: Checked checks constraint
     type: AlphaNumPair<Checked<0, this>, Checked<1, this>>
     constraints: [number, string]  // should be [string, number]
 }}
 
 interface $AlphaNumPair extends Type<2> {
+    // Check defuses constraint
     type: AlphaNumPair<Checked<0,this>, Checked<1,this>>
     constraints: [string, number]
 }
