@@ -1,0 +1,6 @@
+{
+	"extends": ".././tsconfig-perf.json",
+	"include": [
+		"../dist/**/*.ts"
+	]
+}

@@ -21,12 +21,14 @@
     "devDependencies": {
         "foo": "github:geoffreytools/Foo",
         "ts-spec": "^1.7.0",
-        "typescript": "^5.2.2"
+        "ts-trace": "github:geoffreytools/ts-trace",
+        "typescript": "^4.9.5"
     },
     "scripts": {
         "test watch": "tsc --watch",
         "build": "tsc -p ./tsconfig-build.json",
         "watch": "tsc -p ./tsconfig-build.json --watch",
-        "trace": "tsc --generateTrace traceDir"
+        "trace": "bash ./node_modules/ts-trace/ts-trace.sh -i ./tsconfig-perf.json",
+        "diagnostics": "tsc -p ./tsconfig-perf.json --extendedDiagnostics"
     }
 }
