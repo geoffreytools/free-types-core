@@ -1,5 +1,6 @@
 import { Type } from './Type'
-import { ToTuple } from './utils'
+
+type ToTuple<T> = T extends infer I extends unknown[] & unknown[] ? I : never;
 
 export {
     $Id as Id,
@@ -19,37 +20,41 @@ export {
     $Promise as Promise
 }
 
-interface $Id extends Type<1> {
+type $Unary = Type<1>;
+
+type $Binary = Type<2>;
+
+type $Variadic = Type;
+
+interface $Id extends $Unary {
     type: this[0]
 }
 
-type Key = string | number | symbol;
-
-interface $Record extends Type<[Key, unknown]> {
-    type: Record<this[0] & Key, this[1]>
+interface $Record extends Type<[PropertyKey, unknown]> {
+    type: Record<this[0] & PropertyKey, this[1]>
 }
 
-interface $Array extends Type<1> {
+interface $Array extends $Unary {
     type: Array<this[0]>
 }
 
-interface $Tuple extends Type {
+interface $Tuple extends $Variadic {
     type: ToTuple<this['arguments']>;
 }
 
-interface $ReadonlyTuple extends Type {
-    type: Readonly<ToTuple<this['arguments']>>;
+interface $ReadonlyTuple extends $Variadic {
+    type: readonly [...ToTuple<this['arguments']>];
 }
 
-interface $ReadonlyArray extends Type<1> {
+interface $ReadonlyArray extends $Unary {
     type: ReadonlyArray<this[0]>
 }
 
-interface $Set extends Type<1> {
+interface $Set extends $Unary {
     type: Set<this[0]>
 }
 
-interface $ReadonlySet extends Type<1> {
+interface $ReadonlySet extends $Unary {
     type: ReadonlySet<this[0]>
 }
 
@@ -57,11 +62,11 @@ interface $WeakSet extends Type<[object]> {
     type: WeakSet<this[0] extends object ? this[0] : object>
 }
 
-interface $Map extends Type<2> {
+interface $Map extends $Binary {
     type: Map<this[0], this[1]>
 }
 
-interface $ReadonlyMap extends Type<2> {
+interface $ReadonlyMap extends $Binary {
     type: ReadonlyMap<this[0], this[1]>
 }
 
@@ -73,11 +78,11 @@ interface $Function extends Type<[any[], unknown]> {
     type: (...args: this[0] extends any[] ? this[0] : any[]) => this[1]
 }
 
-interface $UnaryFunction extends Type<2> {
+interface $UnaryFunction extends $Binary {
     type: (a: unknown extends this[0] ? any : this[0]) => this[1]
 }
 
-interface $Promise extends Type<1> {
+interface $Promise extends $Unary {
     type: Promise<this[0]>
 }
 

@@ -1,5 +1,5 @@
 import { unwrap, Unwrapped, Search } from './unwrap'
-import { apply } from './apply';
+import { _apply } from './apply';
 
 import { TypesMap } from './TypesMap';
 
@@ -14,4 +14,4 @@ type Replace<
     Args extends U['type']['constraints'],
     From extends Search = TypesMap,
     U extends Unwrapped = unwrap<T, From>
-> = apply<U['type'], Args>
+> = _apply<U['type'], Args>

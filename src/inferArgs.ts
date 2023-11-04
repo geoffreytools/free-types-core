@@ -1,10 +1,9 @@
-import { Type } from './Type';
-import { apply } from './apply';
+import { _apply, _Type } from './apply';
 
 export { inferArgs };
 
-type inferArgs<T, $T extends Type> =
-    T extends apply<$T, [
+type inferArgs<T, $T extends _Type> =
+    T extends _apply<$T, [
         infer A, infer B, infer C, infer D, infer E,
         infer F, infer G, infer H, infer I, infer J
     ]> ? Extract<[A, B, C, D, E, F, G, H, I, J]>[$T['constraints']['length']] 
