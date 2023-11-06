@@ -1,9 +1,11 @@
-import { NamedConstraints } from './Type';
+import { Contra, NamedConstraints } from './Type';
 import { ArrayLike, Next, IsOptional, Mappable, Union2Tuple, Int } from './utils';
 
 export { From };
 
 type Named = ({ [k: PropertyKey]: string } | undefined)[]
+
+type None = {};
 
 /** Create a new `Type` based upon a Mappable `T`.
  * 
@@ -18,37 +20,36 @@ type From<
     [Args] extends [never]
     ? (T extends unknown[] ? GetIndices<T> : Union2Tuple<keyof T>) extends infer K
         ? {
-            type: T
             constraints: PseudoTuple<T, K>
-            names: {},
+            names: None,
             keys: K,
          } : never
     : Args extends Named
     ? {
-        type: T,
         constraints: ToConstraints<T, Args>
         names: GetNames<Args>,
         keys: GetKeys<Args>,
     } : {
-        type: T,
         constraints: PseudoTuple<T, Args>
         names: Args extends (string | undefined)[] ? GenerateNames<Args> : {},
         keys: Required<Args>,
     }
-) extends infer D extends Descriptor ? FromTemplate<D> : never
+) extends infer D extends Descriptor ? FromTemplate<{ type: T }, D> : never
 
 type Descriptor = {
-    type: any, constraints: any, names: any, keys: any
+    constraints: any, names: any, keys: any
 }
 
-interface FromTemplate<D extends Descriptor> {
+interface FromTemplate<T extends { type: any }, D extends Descriptor> {
     [k: number]: unknown
-    type: D['type'] extends infer Type ?  unknown[] extends this['arguments'] ? Type : {
+    type: T['type'] extends infer Type ?  unknown[] extends this['arguments'] ? Type : {
         [K in keyof Type]: Value<Type[K], this['arguments'], IndexOf<K, D['keys']>, D['constraints']>
     } : never
     namedConstraints: NamedConstraints<D>;
     names: D['names']
     constraints: D['constraints']
+    contra: Contra<D['constraints']>
+    arg: any
     arguments: unknown[]
 }
 

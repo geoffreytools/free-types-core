@@ -1,5 +1,16 @@
 import { group, test } from 'ts-spec'
-import { apply, From } from '../src'
+import { apply, From, Type, Expect } from '../src'
+
+{   // higher order type
+
+    type Indirect<$T extends Type<1>> = $T;
+    type IndirectExpect<$T extends Expect<Type<1>>> = $T;
+    
+    type $F = From<{ value: unknown }>;
+    
+    type I = Indirect<$F>
+    type J = IndirectExpect<$F>
+}
 
 test('The template is the implicit return type', t => [
     t.equal<From<[number, string]>['type'], [number, string]>(),
