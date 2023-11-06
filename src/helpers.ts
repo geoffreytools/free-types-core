@@ -1,6 +1,6 @@
 import { Next, IsUnknown, Prev, OptionalKeys } from './utils'
 
-export { Get, At, Checked, Lossy, Optional, A, B, C, D, E, Applied }
+export { Get, At, Checked, Lossy, Optional, A, B, C, D, E, Applied, Valid }
 
 /** Fake `Type` for user friendly error messages */
 interface Type<In extends number | Names> extends BaseType {
@@ -33,6 +33,12 @@ type Normalise<Index extends string | number> =
 /** tell whether a Type is applied with all its arguments or not */
 type Applied<This extends {arguments: any}> =
     unknown[] extends This['arguments'] ? false : true;
+
+/** tell whether a Type is applied with all the correct arguments */
+type Valid<This extends {arguments: any, constraints: any}> =
+    Applied<This> extends false ? false
+    : This['arguments'] extends This['constraints'] ? true
+     : false;
 
 /** safely index `this` */
 type Get<
