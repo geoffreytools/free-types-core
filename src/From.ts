@@ -56,11 +56,9 @@ type GetIndices<T extends unknown[]> = { [K in keyof T]-?: K }
 
 export type Value<T, This extends ArrayLike, I, Constraints extends ArrayLike> =
     [I] extends [never] ? T
-    : This[I & number] extends infer Arg ? ( 
-        IsOptional<Constraints, I> extends true
-        ? Arg extends undefined ? T : Arg
-        : Arg
-    ) : never
+    : IsOptional<Constraints, I> extends true
+    ? This[I & number] extends undefined ? T : This[I & number]
+    : This[I & number]
 
 export type IndexOf<T, Ts extends ArrayLike, L = Required<Ts>['length'], I = 0> =
     I extends L ? never
