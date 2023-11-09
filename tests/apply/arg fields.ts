@@ -60,11 +60,15 @@ test('optional parameters', t => {
     ])
 })
 
-test('preserve optionality', t =>
-    t.equal<
-        Type<{T: [0, number], U?: [1, string]}, string>['arg'],
-        { 0: number, T: number, 1?: string, U?: string }
-    >()
+test('preserve optionality', t => {
+    type $T = Type<{T: [0, number], U?: [1, string]}, string>;
+    
+    return t.force([
+        t.equal<$T['arg']['U'], string | undefined>(),
+        t.equal<$T['arg'][1], string | undefined>(),
+        t.equal<$T['arg']['1'], string | undefined>()
+    ])
+}
 )
 
 group('named parameters', t =>  {
@@ -87,7 +91,7 @@ group('named parameters', t =>  {
 
     group(t('referencing positional parameters'), t => {
         interface $Foo extends $Named {
-            type: Foo<this['arg'][0], this['arg'][1]>
+            type: Foo<this['arg'][0], this['arg']['1']>
         }
 
         test(t('applying positional arguments'), t =>

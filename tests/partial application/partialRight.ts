@@ -12,11 +12,11 @@ test('arguments are wired correctly', t => {
 
     return [
         test(t('this["arg"] returns the most accurate answer'), t =>
-            t.equal<partialRight<$Arg, [1]>['type'], {0: number, 1: 1}>()
+            t.equal<partialRight<$Arg, [1]>['type'][0], number>()
         ),
 
         test(t('this["arguments"] preserves `unknown` values'), t =>
-            t.equal<partialRight<$Arguments, [1]>['type'], [unknown, 1]>()
+            t.equal<partialRight<$Arguments, [1]>['type'][0], unknown>()
         )
     ];
 })

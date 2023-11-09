@@ -79,8 +79,8 @@ type Arg<
     Args = This['names'] & This['constraints'],
     O extends PropertyKey = FindOptionalKeys<This['constraints'], This['names']>,
     R extends PropertyKey = Exclude<Norm<Exclude<keyof Args, ArrayKeys>>, O>
-> = & { [K in Norm<R>]: ArgVal<This, K> }
-    & { [K in Norm<O>]? : ArgVal<This, K> }
+> = & { [K in Norm<R> as `${K & number}` | K]: ArgVal<This, K> }
+    & { [K in Norm<O> as `${K & number}` | K]? : ArgVal<This, K> }
 
 type FindOptionalKeys<
     Constraints,
