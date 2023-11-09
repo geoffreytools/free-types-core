@@ -5,6 +5,8 @@ import { Generic, _apply, _Type } from './apply';
 import { TypesMap } from './TypesMap';
 import { Tuple, ReadonlyTuple, Array, ReadonlyArray } from './free-types';
 
+type ArrayURIs =  'Tuple' | 'ReadonlyTuple' | 'Array' | 'ReadonlyArray';
+
 type Search = _Type | SearchList;
 type SearchList = _Type[] | Record<string, _Type> | Interface;
 type Interface = {[k: string]: any} & { [Symbol.toStringTag]?: never }
@@ -29,7 +31,11 @@ type unwrap<T, From extends Search = TypesMap> =
     : (T extends readonly unknown[] ?
         From extends _Type | _Type[] ? null : unwrapLists<T> : null
     ) extends infer R extends Unwrapped ? R
-    : _unwrap<T, From extends _Type ? [From] : From>
+    : _unwrap<T,
+        From extends _Type ? [From]
+        : TypesMap extends From ? Omit<TypesMap, ArrayURIs>
+        : From
+    >
 
 type unwrapLists<T extends readonly unknown[]> =
     T extends unknown[]

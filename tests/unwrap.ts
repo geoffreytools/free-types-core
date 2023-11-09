@@ -1,4 +1,4 @@
-import { Type, free, A, unwrap, Unwrapped } from '../src';
+import { Type, free, A, unwrap, Unwrapped, TypesMap } from '../src';
 import { test } from 'ts-spec'
 
 test('unwrap known type', t =>
@@ -68,3 +68,7 @@ test('unwrap type supplied as a custom map', t => [
 
 // @ts-expect-error: reject built-ins
 type BuiltinsObjRejected = unwrap<Bar<'a'>, Set<1>>
+
+// Higher order types compile
+{type HOT<T, U extends Unwrapped = unwrap<T>> = null;}
+{type HOT<T, U extends Unwrapped = unwrap<T, TypesMap>> = null;}
