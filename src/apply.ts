@@ -62,7 +62,13 @@ type applyPositional<
     : _apply<$T, Take<Args, 0, GetLength<Required<$T['constraints']>>>>;
 
 /** A looser version of `apply` which can be used in internal library code to improve performance */
-type _apply<$T extends { type: unknown }, Args extends _Constraints> = 
+type _apply<$T extends { type: unknown }, Args extends _Constraints> =
+    _inject<$T, { [K in keyof Args]: Args[K] }>;
+
+/** _apply with its Args already evaluated and threaded as a single bound parameter
+ * to prevent re-expansion on every reference inside the `type` field
+ */
+type _inject<$T extends { type: unknown }, Args extends _Constraints> =
     ($T & Omit<Args, ArrayKeys> & { arguments: Args })['type'];
 
 type _Constraints = { [k: number]: unknown }
