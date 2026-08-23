@@ -22,13 +22,15 @@
         "foo": "github:geoffreytools/Foo",
         "ts-spec": "^1.7.0",
         "ts-trace": "github:geoffreytools/ts-trace",
-        "typescript": "^4.9.5"
+        "tsc-esm-kit": "github:geoffreytools/tsc-esm-kit#v0.3.0",
+        "typescript": "^6.0.3"
     },
     "scripts": {
         "watch build": "tsc -p ./tsconfig-build.json --watch",
         "watch test": "tsc --watch",
-        "build": "tsc -p ./tsconfig-build.json",
+        "build": "tsc -p ./tsconfig-build.json && tsc-esm-kit --project ./tsconfig-build.json",
         "trace": "bash ./node_modules/ts-trace/ts-trace.sh -i ./tsconfig-perf.json",
         "diagnostics": "tsc -p ./tsconfig-perf.json --extendedDiagnostics"
-    }
+    },
+    "type": "module"
 }

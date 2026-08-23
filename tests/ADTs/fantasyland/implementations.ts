@@ -171,8 +171,8 @@ type PrettyMaybe<T> =
 const Maybe = {
     of <T>(x: T): Just<T> { return new Just(x) },
     fromNullable <T>(x: T): PrettyMaybe<T> {
-        return x === null || x === undefined
-        ? new Nothing() : new Just(x) as any
+        return (x === null || x === undefined
+        ? new Nothing() : new Just(x)) as any
     }
 }
 

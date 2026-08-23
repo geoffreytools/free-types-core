@@ -1,12 +1,6 @@
 {
     "extends": "./tsconfig-base.json",
     "compilerOptions": {
-        "noErrorTruncation": true,
-        "moduleResolution": "node",
-        "module": "ES2020",
-        "strictFunctionTypes": true,
-        "noImplicitAny": true,
-        "strict": true,
         "lib": ["ES2015"],
         "target": "ES2015"
     },
