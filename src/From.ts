@@ -1,5 +1,5 @@
 import { Contra, NamedConstraints } from './Type';
-import { ArrayLike, Next, IsOptional, Mappable, Union2Tuple, Int } from './utils';
+import { ArrayLike, IsOptional, Mappable, Union2Tuple, Int, IndexOf } from './utils';
 
 export { From };
 
@@ -60,11 +60,6 @@ export type Value<T, This extends ArrayLike, I, Constraints extends ArrayLike> =
     : IsOptional<Constraints, I> extends true
     ? This[I & number] extends undefined ? T : This[I & number]
     : This[I & number]
-
-export type IndexOf<T, Ts extends ArrayLike, L = Required<Ts>['length'], I = 0> =
-    I extends L ? never
-    : [T] extends [`${Ts[I & number]}`] ? I
-    : IndexOf<T, Ts, L, Next<I>>;
 
 type PseudoTuple<T, Keys> = {
     [K in keyof Keys]: Exclude<T[Keys[K] & keyof T], undefined>

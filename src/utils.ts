@@ -48,12 +48,17 @@ type ReverseMap<T extends {[k: string]: any}> = { [K in keyof T as T[K]]: K }
 
 // Tuples
 
-export { ArrayLike, Indexable, ArrayKeys, Slice, ToTuple, Tuple, NumericKeys, Head, Tail, Last, Init, IsOptional, GetRest }
+export { ArrayLike, Indexable, IndexOf, ArrayKeys, Slice, ToTuple, Tuple, NumericKeys, Head, Tail, Last, Init, IsOptional, GetRest }
 
 type ArrayKeys = Exclude<keyof [], never>;
 
 type ArrayLike = { [k: number]: any, length: any };
 type Indexable = { [k: number]: any };
+
+type IndexOf<T, Ts extends ArrayLike, L = Required<Ts>['length'], I = 0> =
+    I extends L ? never
+    : [T] extends [`${Ts[I & number]}`] ? I
+    : IndexOf<T, Ts, L, Next<I>>;
 
 type Slice<
     T extends Indexable,
